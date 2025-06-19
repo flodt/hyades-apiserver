@@ -12,7 +12,6 @@ message AnalysisCommand {
   // The component that shall be analyzed.
   Component component = 1;
   FetchMeta fetch_meta = 2;
-
 }
 
 enum FetchMeta{
@@ -20,6 +19,7 @@ enum FetchMeta{
   FETCH_META_INTEGRITY_DATA = 1;
   FETCH_META_LATEST_VERSION = 2;
   FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION = 3;
+  FETCH_META_HEALTH = 4;
 }
 
 message AnalysisResult {
@@ -34,7 +34,12 @@ message AnalysisResult {
 
   // When the latest version was published.
   optional google.protobuf.Timestamp published = 4;
+
+  // Integrity metadata of the component.
   optional IntegrityMeta integrity_meta = 5;
+
+  // Health metadata of the component
+  optional HealthMeta health_meta = 6;
 }
 
 message IntegrityMeta {
@@ -44,7 +49,38 @@ message IntegrityMeta {
   optional string sha512 = 4;
   // When the component current version last modified.
   optional google.protobuf.Timestamp current_version_last_modified = 5;
-  string meta_source_url = 6;
+  // Complete URL to fetch integrity metadata of the component.
+  optional string meta_source_url = 6;
+}
+
+message HealthMeta {
+  optional int32 stars = 1;
+  optional int32 forks = 2;
+  optional int32 contributors = 3;
+  optional float commitFrequency = 4;
+  optional int32 openIssues = 5;
+  optional int32 openPRs = 6;
+  optional string lastCommitDate = 7;
+  optional int32 busFactor = 8;
+  optional bool hasReadme = 9;
+  optional bool hasCodeOfConduct = 10;
+  optional bool hasSecurityPolicy = 11;
+  optional int32 dependents = 12;
+  optional int32 files = 13;
+  optional bool isRepoArchived = 14;
+  repeated ScoreCardCheck scoreCardChecks = 15;
+  optional float scoreCardScore = 16;
+  optional string scoreCardReferenceVersion = 17;
+  optional google.protobuf.Timestamp scoreCardTimestamp = 18;
+}
+
+message ScoreCardCheck {
+  optional string name = 1;
+  optional string description = 2;
+  optional float score = 3;
+  optional string reason = 4;
+  repeated string details = 5;
+  optional string documentationUrl = 6;
 }
 
 message Component {
