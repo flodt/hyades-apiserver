@@ -20,13 +20,24 @@ package org.dependencytrack.event.kafka.componentmeta;
 
 import com.github.packageurl.MalformedPackageURLException;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
+import org.dependencytrack.event.kafka.componentmeta.health.SupportedHealthMetaHandler;
+import org.dependencytrack.event.kafka.componentmeta.health.UnSupportedHealthMetaHandler;
 import org.dependencytrack.event.kafka.componentmeta.integrity.SupportedIntegrityMetaHandler;
 import org.dependencytrack.event.kafka.componentmeta.integrity.UnSupportedIntegrityMetaHandler;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 
 public class HandlerFactory {
+    public static Handler<HealthMetaComponent> createHealthMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
+        boolean result = RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK.contains(componentProjection.purl().getType());
+        if (result) {
+            return new SupportedHealthMetaHandler(componentProjection, queryManager, kafkaEventDispatcher, fetchMeta);
+        } else {
+            return new UnSupportedHealthMetaHandler(componentProjection, queryManager, kafkaEventDispatcher, fetchMeta);
+        }
+    }
 
     public static Handler<IntegrityMetaComponent> createIntegrityMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) throws MalformedPackageURLException {
         boolean result = RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK.contains(componentProjection.purl().getType());

@@ -20,6 +20,7 @@ package org.dependencytrack.event.kafka.componentmeta;
 
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
 import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
@@ -33,6 +34,12 @@ public abstract class AbstractMetaHandler<T> implements Handler<T> {
     protected KafkaEventDispatcher kafkaEventDispatcher;
     protected FetchMeta fetchMeta;
 
+    protected AbstractMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
+        this.componentProjection = componentProjection;
+        this.kafkaEventDispatcher = kafkaEventDispatcher;
+        this.queryManager = queryManager;
+        this.fetchMeta = fetchMeta;
+    }
 
     public static IntegrityMetaComponent createIntegrityMetaComponent(String purl) {
         IntegrityMetaComponent integrityMetaComponent = new IntegrityMetaComponent();
@@ -42,4 +49,11 @@ public abstract class AbstractMetaHandler<T> implements Handler<T> {
         return integrityMetaComponent;
     }
 
+    public static HealthMetaComponent createHealthMetaComponent(String purl) {
+        HealthMetaComponent healthMetaComponent = new HealthMetaComponent();
+        healthMetaComponent.setStatus(FetchStatus.IN_PROGRESS);
+        healthMetaComponent.setPurl(purl);
+        healthMetaComponent.setLastFetch(Date.from(Instant.now()));
+        return healthMetaComponent;
+    }
 }

@@ -16,27 +16,25 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) OWASP Foundation. All Rights Reserved.
  */
-package org.dependencytrack.event.kafka.componentmeta.integrity;
+
+package org.dependencytrack.event.kafka.componentmeta.health;
 
 import com.github.packageurl.MalformedPackageURLException;
-import com.github.packageurl.PackageURL;
-import org.dependencytrack.event.ComponentRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
 import org.dependencytrack.event.kafka.componentmeta.AbstractMetaHandler;
 import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
-import org.dependencytrack.model.IntegrityMetaComponent;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 
-public class UnSupportedIntegrityMetaHandler extends AbstractMetaHandler<IntegrityMetaComponent> {
-
-    public UnSupportedIntegrityMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
+public class UnSupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaComponent> {
+    public UnSupportedHealthMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
         super(componentProjection, queryManager, kafkaEventDispatcher, fetchMeta);
     }
 
     @Override
-    public IntegrityMetaComponent handle() throws MalformedPackageURLException {
-        kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, new PackageURL(componentProjection.purlCoordinates()).canonicalize(), componentProjection.internal(), fetchMeta));
+    public HealthMetaComponent handle() throws MalformedPackageURLException {
+        // TODO: can we do anything sensible in this case? fallback to other data sources?
         return null;
     }
 }

@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.datanucleus.PropertyNames;
 import org.datanucleus.api.jdo.JDOQuery;
 import org.dependencytrack.model.AffectedVersionAttribution;
@@ -54,6 +55,7 @@ import org.dependencytrack.model.ComponentProperty;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.model.Epss;
 import org.dependencytrack.model.FindingAttribution;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityAnalysis;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.License;
@@ -1576,6 +1578,21 @@ public class QueryManager extends AlpineQueryManager {
 
     public void createIntegrityMetaHandlingConflict(IntegrityMetaComponent integrityMetaComponent) {
         getIntegrityMetaQueryManager().createIntegrityMetaHandlingConflict(integrityMetaComponent);
+    }
+
+    public HealthMetaComponent getHealthMetaComponent(String purl) {
+        // TODO
+        throw new NotImplementedException();
+    }
+
+    public HealthMetaComponent updateHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
+        // TODO
+        throw new NotImplementedException();
+    }
+
+    public HealthMetaComponent createHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
+        // TODO
+        throw new NotImplementedException();
     }
 
     public IntegrityAnalysis getIntegrityAnalysisByComponentUuid(UUID uuid) {

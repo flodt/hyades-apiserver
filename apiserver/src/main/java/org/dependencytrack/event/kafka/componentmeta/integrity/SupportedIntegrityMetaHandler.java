@@ -38,10 +38,7 @@ import static org.dependencytrack.model.FetchStatus.PROCESSED;
 public class SupportedIntegrityMetaHandler extends AbstractMetaHandler<IntegrityMetaComponent> {
 
     public SupportedIntegrityMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
-        this.componentProjection = componentProjection;
-        this.kafkaEventDispatcher = kafkaEventDispatcher;
-        this.queryManager = queryManager;
-        this.fetchMeta = fetchMeta;
+        super(componentProjection, queryManager, kafkaEventDispatcher, fetchMeta);
     }
 
     @Override
