@@ -16,11 +16,13 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) OWASP Foundation. All Rights Reserved.
  */
-package org.dependencytrack.event.kafka.componentmeta;
+package org.dependencytrack.event.kafka.componentmeta.integrity;
 
 import com.github.packageurl.MalformedPackageURLException;
 import org.dependencytrack.event.ComponentRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
+import org.dependencytrack.event.kafka.componentmeta.AbstractMetaHandler;
+import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
 import org.dependencytrack.model.FetchStatus;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.persistence.QueryManager;
@@ -33,9 +35,9 @@ import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TI
 import static org.dependencytrack.model.FetchStatus.NOT_AVAILABLE;
 import static org.dependencytrack.model.FetchStatus.PROCESSED;
 
-public class SupportedMetaHandler extends AbstractMetaHandler {
+public class SupportedIntegrityMetaHandler extends AbstractMetaHandler<IntegrityMetaComponent> {
 
-    public SupportedMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
+    public SupportedIntegrityMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
         this.componentProjection = componentProjection;
         this.kafkaEventDispatcher = kafkaEventDispatcher;
         this.queryManager = queryManager;

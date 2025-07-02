@@ -23,6 +23,9 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
+import org.dependencytrack.event.kafka.componentmeta.integrity.SupportedIntegrityMetaHandler;
+import org.dependencytrack.event.kafka.componentmeta.integrity.UnSupportedIntegrityMetaHandler;
+import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import org.dependencytrack.util.PurlUtil;
 import org.junit.Test;
@@ -37,13 +40,13 @@ public class HandlerFactoryTest extends PersistenceCapableTest {
 
     @Test
     public void createHandlerForSupportedPackageTest() {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         try {
             PackageURL packageUrl = new PackageURL("pkg:maven/org.http4s/blaze-core_2.12");
             ComponentProjection componentProjection = new ComponentProjection(UUID.randomUUID(), PurlUtil.silentPurlCoordinatesOnly(packageUrl).toString(), false, packageUrl);
-            handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
-            assertTrue(handler instanceof SupportedMetaHandler);
+            handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+            assertTrue(handler instanceof SupportedIntegrityMetaHandler);
         } catch (MalformedPackageURLException e) {
             LOGGER.warn("Package url not formed correctly");
         }
@@ -52,13 +55,13 @@ public class HandlerFactoryTest extends PersistenceCapableTest {
 
     @Test
     public void createHandlerForUnSupportedPackageTest() {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         try {
             PackageURL packageUrl = new PackageURL("pkg:golang/github.com/foo/bar@1.2.3");
             ComponentProjection componentProjection = new ComponentProjection(UUID.randomUUID(), PurlUtil.silentPurlCoordinatesOnly(packageUrl).toString(), false, packageUrl);
-            handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_LATEST_VERSION);
-            assertTrue(handler instanceof UnSupportedMetaHandler);
+            handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_LATEST_VERSION);
+            assertTrue(handler instanceof UnSupportedIntegrityMetaHandler);
         } catch (MalformedPackageURLException e) {
             throw new RuntimeException(e);
         }

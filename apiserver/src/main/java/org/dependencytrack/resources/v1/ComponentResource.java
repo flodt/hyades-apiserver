@@ -82,7 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.dependencytrack.event.kafka.componentmeta.IntegrityCheck.calculateIntegrityResult;
+import static org.dependencytrack.event.kafka.componentmeta.integrity.IntegrityCheck.calculateIntegrityResult;
 import static org.dependencytrack.model.FetchStatus.NOT_AVAILABLE;
 import static org.dependencytrack.model.FetchStatus.PROCESSED;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.openJdbiHandle;
@@ -491,7 +491,7 @@ public class ComponentResource extends AbstractApiResource {
                         new ComponentProjection(component.getUuid(), component.getPurlCoordinates().toString(),
                                 component.isInternal(), component.getPurl());
                 try {
-                    Handler repoMetaHandler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+                    Handler<IntegrityMetaComponent> repoMetaHandler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
                     IntegrityMetaComponent integrityMetaComponent = repoMetaHandler.handle();
                     if (integrityMetaComponent != null && (integrityMetaComponent.getStatus() == PROCESSED || integrityMetaComponent.getStatus() == NOT_AVAILABLE)) {
                         calculateIntegrityResult(integrityMetaComponent, component, qm);
@@ -616,7 +616,7 @@ public class ComponentResource extends AbstractApiResource {
                                     component.isInternal(), component.getPurl());
                     try {
 
-                        Handler repoMetaHandler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+                        Handler<IntegrityMetaComponent> repoMetaHandler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
                         IntegrityMetaComponent integrityMetaComponent = repoMetaHandler.handle();
                         if (integrityMetaComponent != null && (integrityMetaComponent.getStatus() == PROCESSED || integrityMetaComponent.getStatus() == NOT_AVAILABLE)) {
                             calculateIntegrityResult(integrityMetaComponent, component, qm);

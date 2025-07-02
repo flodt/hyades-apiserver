@@ -32,17 +32,17 @@ import org.junit.jupiter.api.Assertions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.dependencytrack.util.KafkaTestUtil.deserializeValue;
 
-public class UnSupportedMetaHandlerTest extends PersistenceCapableTest {
+public class UnSupportedIntegrityMetaHandlerTest extends PersistenceCapableTest {
 
     @Test
     public void testHandleComponentInDb() throws MalformedPackageURLException {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         PackageURL packageUrl = new PackageURL("pkg:golang/foo/bar@baz?ping=pong#1/2/3");
         ComponentProjection componentProjection = new ComponentProjection(null, PurlUtil.silentPurlCoordinatesOnly(packageUrl).toString(), false, packageUrl);
         IntegrityMetaComponent integrityMetaComponent = qm.getIntegrityMetaComponent(componentProjection.purl().toString());
         Assertions.assertNull(integrityMetaComponent);
-        handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_LATEST_VERSION);
+        handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_LATEST_VERSION);
         handler.handle();
         assertThat(kafkaMockProducer.history()).satisfiesExactly(
                 record -> {

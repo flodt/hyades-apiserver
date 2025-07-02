@@ -19,8 +19,11 @@
 package org.dependencytrack.event.kafka.componentmeta;
 
 import com.github.packageurl.MalformedPackageURLException;
-import org.dependencytrack.model.IntegrityMetaComponent;
 
-public interface Handler {
-    IntegrityMetaComponent handle() throws MalformedPackageURLException;
+/**
+ * Generic interface for component metadata handlers
+ * @param <T> the type of metadata component returned by this handler
+ */
+public interface Handler<T> {
+    T handle() throws MalformedPackageURLException;
 }

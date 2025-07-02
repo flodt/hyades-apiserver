@@ -27,12 +27,11 @@ import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import java.time.Instant;
 import java.util.Date;
 
-public abstract class AbstractMetaHandler implements Handler {
-
-    ComponentProjection componentProjection;
-    QueryManager queryManager;
-    KafkaEventDispatcher kafkaEventDispatcher;
-    FetchMeta fetchMeta;
+public abstract class AbstractMetaHandler<T> implements Handler<T> {
+    protected ComponentProjection componentProjection;
+    protected QueryManager queryManager;
+    protected KafkaEventDispatcher kafkaEventDispatcher;
+    protected FetchMeta fetchMeta;
 
 
     public static IntegrityMetaComponent createIntegrityMetaComponent(String purl) {

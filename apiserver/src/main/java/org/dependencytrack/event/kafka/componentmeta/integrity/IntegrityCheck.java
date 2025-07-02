@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) OWASP Foundation. All Rights Reserved.
  */
-package org.dependencytrack.event.kafka.componentmeta;
+package org.dependencytrack.event.kafka.componentmeta.integrity;
 
 import alpine.Config;
 import alpine.common.logging.Logger;

@@ -38,18 +38,18 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.dependencytrack.util.KafkaTestUtil.deserializeValue;
 
-public class SupportedMetaHandlerTest extends PersistenceCapableTest {
+public class SupportedIntegrityMetaHandlerTest extends PersistenceCapableTest {
 
     @Test
     public void testHandleIntegrityComponentNotInDB() throws MalformedPackageURLException {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         UUID uuid = UUID.randomUUID();
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         PackageURL packageUrl = new PackageURL("pkg:maven/org.http4s/blaze-core_2.12");
         ComponentProjection componentProjection = new ComponentProjection(uuid, PurlUtil.silentPurlCoordinatesOnly(packageUrl).toString(), false, packageUrl);
         IntegrityMetaComponent integrityMetaComponent = qm.getIntegrityMetaComponent(componentProjection.purl().toString());
         Assertions.assertNull(integrityMetaComponent);
-        handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA);
+        handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA);
         IntegrityMetaComponent result = handler.handle();
         assertThat(kafkaMockProducer.history()).satisfiesExactly(
                 record -> {
@@ -67,7 +67,7 @@ public class SupportedMetaHandlerTest extends PersistenceCapableTest {
 
     @Test
     public void testHandleIntegrityComponentInDBForMoreThanAnHour() throws MalformedPackageURLException {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         UUID uuid = UUID.randomUUID();
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         PackageURL packageUrl = new PackageURL("pkg:maven/org.http4s/blaze-core_2.12");
@@ -77,7 +77,7 @@ public class SupportedMetaHandlerTest extends PersistenceCapableTest {
         integrityMeta.setStatus(FetchStatus.IN_PROGRESS);
         integrityMeta.setLastFetch(Date.from(Instant.now().minus(2, ChronoUnit.HOURS)));
         qm.createIntegrityMetaComponent(integrityMeta);
-        handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA);
+        handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA);
         IntegrityMetaComponent integrityMetaComponent = handler.handle();
         assertThat(kafkaMockProducer.history()).satisfiesExactly(
                 record -> {
@@ -96,7 +96,7 @@ public class SupportedMetaHandlerTest extends PersistenceCapableTest {
 
     @Test
     public void testHandleIntegrityWhenMetadataExists() throws MalformedPackageURLException {
-        Handler handler;
+        Handler<IntegrityMetaComponent> handler;
         UUID uuid = UUID.randomUUID();
         KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
         PackageURL packageUrl = new PackageURL("pkg:maven/org.http4s/blaze-core_2.12");
@@ -107,7 +107,7 @@ public class SupportedMetaHandlerTest extends PersistenceCapableTest {
         integrityMeta.setStatus(FetchStatus.PROCESSED);
         integrityMeta.setLastFetch(Date.from(Instant.now().minus(2, ChronoUnit.HOURS)));
         qm.createIntegrityMetaComponent(integrityMeta);
-        handler = HandlerFactory.createHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+        handler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
         IntegrityMetaComponent integrityMetaComponent = handler.handle();
         assertThat(kafkaMockProducer.history()).satisfiesExactly(
                 record -> {

@@ -30,7 +30,7 @@ import org.dependencytrack.persistence.QueryManager;
 
 import java.util.UUID;
 
-import static org.dependencytrack.event.kafka.componentmeta.IntegrityCheck.calculateIntegrityResult;
+import static org.dependencytrack.event.kafka.componentmeta.integrity.IntegrityCheck.calculateIntegrityResult;
 
 public class IntegrityAnalysisTask implements Subscriber {
 

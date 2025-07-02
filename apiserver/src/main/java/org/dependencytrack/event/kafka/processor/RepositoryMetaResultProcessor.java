@@ -38,7 +38,7 @@ import javax.jdo.Query;
 import java.util.Date;
 import java.util.Optional;
 
-import static org.dependencytrack.event.kafka.componentmeta.IntegrityCheck.performIntegrityCheck;
+import static org.dependencytrack.event.kafka.componentmeta.integrity.IntegrityCheck.performIntegrityCheck;
 
 /**
  * A {@link Processor} responsible for processing result of component repository meta analyses.
