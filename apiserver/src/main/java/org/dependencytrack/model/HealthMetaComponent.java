@@ -19,16 +19,23 @@
 
 package org.dependencytrack.model;
 
+import alpine.server.json.TrimmedStringDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.github.packageurl.validator.PackageURL;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import javax.jdo.annotations.Column;
 import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.Index;
 import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.Persistent;
 import javax.jdo.annotations.PrimaryKey;
+import javax.jdo.annotations.Unique;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -38,35 +45,23 @@ import java.util.Date;
 @PersistenceCapable(table = "HEALTH_META_COMPONENT")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HealthMetaComponent implements Serializable {
-    private static final long serialVersionUID = -7047028094266649845L;
+    @Serial
+    private static final long serialVersionUID = -671880241057005336L;
 
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.NATIVE)
     @JsonIgnore
     private long id;
 
-    /**
-     * This is an indirect representation of a the Package URL "type" field.
-     */
-    @Persistent(defaultFetchGroup = "true")
-    @Column(name = "REPOSITORY_TYPE", jdbcType = "VARCHAR", allowsNull = "false")
-    @NotNull
-    private RepositoryType repositoryType;
-
-    /**
-     * This is a representation of the Package URL "namespace" field.
-     */
     @Persistent
-    @Column(name = "NAMESPACE")
-    private String namespace;
-
-    /**
-     * This is a representation of the Package URL "name" field.
-     */
-    @Persistent
-    @Column(name = "NAME", allowsNull = "false")
+    @Column(name = "PURL", allowsNull = "false", jdbcType = "VARCHAR", length = 1024)
+    @Index(name = "PURL_IDX")
+    @Size(max = 1024)
+    @PackageURL
+    @JsonDeserialize(using = TrimmedStringDeserializer.class)
+    @Unique
     @NotNull
-    private String name;
+    private String purl;
 
     @Persistent
     @Column(name = "STARS")
@@ -159,28 +154,12 @@ public class HealthMetaComponent implements Serializable {
         this.id = id;
     }
 
-    public RepositoryType getRepositoryType() {
-        return repositoryType;
+    public String getPurl() {
+        return purl;
     }
 
-    public void setRepositoryType(RepositoryType repositoryType) {
-        this.repositoryType = repositoryType;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setPurl(String purl) {
+        this.purl = purl;
     }
 
     @Schema(description = "Number of stars of the component's source code repository")
