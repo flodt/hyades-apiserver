@@ -18,13 +18,17 @@
  */
 package org.dependencytrack.event.kafka.componentmeta;
 
+import com.github.packageurl.PackageURL;
+
 import java.util.List;
 
 public class RepoMetaConstants {
 
     public static final long TIME_SPAN = 60 * 60 * 1000L;
     public static final List<String> SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK = List.of(
-            "maven", "npm", "pypi"
+            PackageURL.StandardTypes.MAVEN,
+            PackageURL.StandardTypes.NPM,
+            PackageURL.StandardTypes.PYPI
     );
 
     /**
@@ -32,6 +36,12 @@ public class RepoMetaConstants {
      * These are as of 02-07-2025: npm, Go, Maven, PyPI, NuGet, Cargo, RubyGems
      */
     public static final List<String> SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK = List.of(
-            "npm", "golang", "maven", "pypi", "nuget", "cargo", "gem"
+            PackageURL.StandardTypes.NPM,
+            PackageURL.StandardTypes.GOLANG,
+            PackageURL.StandardTypes.MAVEN,
+            PackageURL.StandardTypes.PYPI,
+            PackageURL.StandardTypes.NUGET,
+            PackageURL.StandardTypes.CARGO,
+            PackageURL.StandardTypes.GEM
     );
 }
