@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.datanucleus.PropertyNames;
 import org.datanucleus.api.jdo.JDOQuery;
 import org.dependencytrack.model.AffectedVersionAttribution;
