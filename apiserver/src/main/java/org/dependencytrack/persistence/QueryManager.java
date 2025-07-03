@@ -145,6 +145,7 @@ public class QueryManager extends AlpineQueryManager {
     private VulnerableSoftwareQueryManager vulnerableSoftwareQueryManager;
     private WorkflowStateQueryManager workflowStateQueryManager;
     private IntegrityMetaQueryManager integrityMetaQueryManager;
+    private HealthMetaQueryManager healthMetaQueryManager;
     private IntegrityAnalysisQueryManager integrityAnalysisQueryManager;
     private TagQueryManager tagQueryManager;
     private EpssQueryManager epssQueryManager;
@@ -441,6 +442,13 @@ public class QueryManager extends AlpineQueryManager {
             integrityMetaQueryManager = (request == null) ? new IntegrityMetaQueryManager(getPersistenceManager()) : new IntegrityMetaQueryManager(getPersistenceManager(), request);
         }
         return integrityMetaQueryManager;
+    }
+
+    private HealthMetaQueryManager getHealthMetaQueryManager() {
+        if (healthMetaQueryManager == null) {
+            healthMetaQueryManager = (request == null) ? new HealthMetaQueryManager(getPersistenceManager()) : new HealthMetaQueryManager(getPersistenceManager(), request);
+        }
+        return healthMetaQueryManager;
     }
 
     private IntegrityAnalysisQueryManager getIntegrityAnalysisQueryManager() {
@@ -1581,18 +1589,23 @@ public class QueryManager extends AlpineQueryManager {
     }
 
     public HealthMetaComponent getHealthMetaComponent(String purl) {
-        // TODO
-        throw new NotImplementedException();
+        return getHealthMetaQueryManager().getHealthMetaComponent(purl);
     }
 
     public HealthMetaComponent updateHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
-        // TODO
-        throw new NotImplementedException();
+        return getHealthMetaQueryManager().updateHealthMetaComponent(healthMetaComponent);
     }
 
     public HealthMetaComponent createHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
-        // TODO
-        throw new NotImplementedException();
+        return getHealthMetaQueryManager().createHealthMetaComponent(healthMetaComponent);
+    }
+
+    public boolean deleteHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
+        return getHealthMetaQueryManager().deleteHealthMetaComponent(healthMetaComponent);
+    }
+
+    public boolean deleteHealthMetaComponent(String purl) {
+        return getHealthMetaQueryManager().deleteHealthMetaComponent(purl);
     }
 
     public IntegrityAnalysis getIntegrityAnalysisByComponentUuid(UUID uuid) {
