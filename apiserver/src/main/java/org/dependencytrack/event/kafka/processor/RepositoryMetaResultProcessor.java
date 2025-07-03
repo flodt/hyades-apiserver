@@ -19,6 +19,8 @@
 package org.dependencytrack.event.kafka.processor;
 
 import alpine.common.logging.Logger;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
@@ -26,19 +28,26 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.dependencytrack.event.kafka.processor.api.Processor;
 import org.dependencytrack.event.kafka.processor.exception.ProcessingException;
 import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.RepositoryMetaComponent;
 import org.dependencytrack.model.RepositoryType;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
+import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.util.PersistenceUtil;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.dependencytrack.event.kafka.componentmeta.integrity.IntegrityCheck.performIntegrityCheck;
+import static org.dependencytrack.util.OptionalUtil.optionalIf;
 
 /**
  * A {@link Processor} responsible for processing result of component repository meta analyses.
@@ -48,6 +57,8 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
     static final String PROCESSOR_NAME = "repo.meta.analysis.result";
 
     private static final Logger LOGGER = Logger.getLogger(RepositoryMetaResultProcessor.class);
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public void process(final ConsumerRecord<String, AnalysisResult> record) throws ProcessingException {
@@ -60,9 +71,100 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
             if (integrityMetaComponent != null) {
                 performIntegrityCheck(integrityMetaComponent, record.value(), qm);
             }
+            synchronizeHealthMetadata(qm, record);
         } catch (Exception e) {
             throw new ProcessingException(e);
         }
+    }
+
+    private void synchronizeHealthMetadata(final QueryManager qm, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
+        final AnalysisResult result = record.value();
+        PackageURL purl = new PackageURL(result.getComponent().getPurl());
+        if (result.hasHealthMeta()) {
+            synchronizeHealthMetaResult(record, qm, purl);
+        } else {
+            LOGGER.debug("Incoming result for component with purl %s does not include component health info".formatted(purl));
+        }
+    }
+
+    private void synchronizeHealthMetaResult(ConsumerRecord<String, AnalysisResult> record, QueryManager qm, PackageURL purl) {
+        final AnalysisResult result = record.value();
+        HealthMetaComponent persistentHealthMetaComponent = qm.getHealthMetaComponent(purl.toString());
+
+        // Check for already processed component, don't need to do anything there
+        if (persistentHealthMetaComponent != null
+                && Objects.equals(persistentHealthMetaComponent.getStatus(), FetchStatus.PROCESSED)) {
+            LOGGER.warn(
+                    "Received health information for %s that has already been processed; discarding."
+                            .formatted(purl)
+            );
+            return;
+        }
+
+        // Check if we have health meta information
+        if (!result.hasHealthMeta()) {
+            LOGGER.warn("Analysis result for %s did not contain health metadata; discarding.".formatted(purl));
+            return;
+        }
+
+        // Create new component if we don't have any yet
+        if (persistentHealthMetaComponent == null) {
+            persistentHealthMetaComponent = new HealthMetaComponent();
+        }
+
+        // Persist all fields
+        HealthMeta healthMeta = result.getHealthMeta();
+
+        optionalIf(healthMeta.hasStars(), healthMeta.getStars()).ifPresent(persistentHealthMetaComponent::setStars);
+        optionalIf(healthMeta.hasForks(), healthMeta.getForks()).ifPresent(persistentHealthMetaComponent::setForks);
+        optionalIf(healthMeta.hasContributors(), healthMeta.getContributors()).ifPresent(persistentHealthMetaComponent::setContributors);
+        optionalIf(healthMeta.hasCommitFrequency(), healthMeta.getCommitFrequency()).ifPresent(persistentHealthMetaComponent::setCommitFrequency);
+        optionalIf(healthMeta.hasOpenIssues(), healthMeta.getOpenIssues()).ifPresent(persistentHealthMetaComponent::setOpenIssues);
+        optionalIf(healthMeta.hasOpenPRs(), healthMeta.getOpenPRs()).ifPresent(persistentHealthMetaComponent::setOpenPRs);
+        optionalIf(healthMeta.hasLastCommitDate(), healthMeta.getLastCommitDate()).ifPresent(persistentHealthMetaComponent::setLastCommitDate);
+        optionalIf(healthMeta.hasBusFactor(), healthMeta.getBusFactor()).ifPresent(persistentHealthMetaComponent::setBusFactor);
+        optionalIf(healthMeta.hasHasReadme(), healthMeta.getHasReadme()).ifPresent(persistentHealthMetaComponent::setHasReadme);
+        optionalIf(healthMeta.hasHasCodeOfConduct(), healthMeta.getHasCodeOfConduct()).ifPresent(persistentHealthMetaComponent::setHasCodeOfConduct);
+        optionalIf(healthMeta.hasHasSecurityPolicy(), healthMeta.getHasSecurityPolicy()).ifPresent(persistentHealthMetaComponent::setHasSecurityPolicy);
+        optionalIf(healthMeta.hasDependents(), healthMeta.getDependents()).ifPresent(persistentHealthMetaComponent::setDependents);
+        optionalIf(healthMeta.hasFiles(), healthMeta.getFiles()).ifPresent(persistentHealthMetaComponent::setFiles);
+        optionalIf(healthMeta.hasIsRepoArchived(), healthMeta.getIsRepoArchived()).ifPresent(persistentHealthMetaComponent::setRepoArchived);
+
+        optionalIf(healthMeta.hasScoreCardScore(), healthMeta.getScoreCardScore()).ifPresent(persistentHealthMetaComponent::setScorecardScore);
+        optionalIf(healthMeta.hasScoreCardReferenceVersion(), healthMeta.getScoreCardReferenceVersion()).ifPresent(persistentHealthMetaComponent::setScorecardReferenceVersion);
+        optionalIf(healthMeta.hasScoreCardTimestamp(), healthMeta.getScoreCardTimestamp())
+                .map(ts -> new Date(ts.getSeconds() * 1_000L + ts.getNanos() / 1_000_000L))
+                .ifPresent(persistentHealthMetaComponent::setScorecardTimestamp);
+
+        // Put Scorecard check results into JSON for serialization
+        optionalIf(!healthMeta.getScoreCardChecksList().isEmpty(), healthMeta.getScoreCardChecksList())
+                .map(protoChecks -> {
+                    List<Map<String, Object>> checks = protoChecks.stream().map(proto -> {
+                        Map<String, Object> m = new LinkedHashMap<>();
+
+                        if (proto.hasName()) m.put("name", proto.getName());
+                        if (proto.hasDescription()) m.put("description", proto.getDescription());
+                        if (proto.hasScore()) m.put("score", proto.getScore());
+                        if (proto.hasReason()) m.put("reason", proto.getReason());
+                        if (!proto.getDetailsList().isEmpty()) m.put("details", proto.getDetailsList());
+                        if (proto.hasDocumentationUrl()) m.put("documentationUrl", proto.getDocumentationUrl());
+
+                        return m;
+                    }).toList();
+                    try {
+                        return MAPPER.writeValueAsString(checks);
+                    } catch (JsonProcessingException e) {
+                        LOGGER.error(
+                                "An error occurred while parsing Scorecard checks JSON for component %s"
+                                        .formatted(purl.toString()),
+                                e);
+                        throw new RuntimeException(e);
+                    }
+                })
+                .ifPresent(persistentHealthMetaComponent::setScorecardChecksJson);
+
+        // Update
+        qm.updateHealthMetaComponent(persistentHealthMetaComponent);
     }
 
     private IntegrityMetaComponent synchronizeIntegrityMetadata(final QueryManager queryManager, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
@@ -121,7 +223,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         }
 
         if (persistentRepoMetaComponent.getLastCheck() != null
-            && persistentRepoMetaComponent.getLastCheck().after(new Date(incomingAnalysisResultRecord.timestamp()))) {
+                && persistentRepoMetaComponent.getLastCheck().after(new Date(incomingAnalysisResultRecord.timestamp()))) {
             LOGGER.warn("""
                     Received repository meta information for %s that is older\s
                     than what's already in the database; Discarding
