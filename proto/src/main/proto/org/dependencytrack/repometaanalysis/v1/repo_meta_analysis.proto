@@ -60,7 +60,7 @@ message HealthMeta {
   optional float commitFrequency = 4;
   optional int32 openIssues = 5;
   optional int32 openPRs = 6;
-  optional string lastCommitDate = 7;
+  optional google.protobuf.Timestamp lastCommitDate = 7;
   optional int32 busFactor = 8;
   optional bool hasReadme = 9;
   optional bool hasCodeOfConduct = 10;

@@ -36,6 +36,7 @@ import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
 import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.util.PersistenceUtil;
+import org.dependencytrack.util.ProtoUtil;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
@@ -121,7 +122,9 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         optionalIf(healthMeta.hasCommitFrequency(), healthMeta.getCommitFrequency()).ifPresent(persistentHealthMetaComponent::setCommitFrequency);
         optionalIf(healthMeta.hasOpenIssues(), healthMeta.getOpenIssues()).ifPresent(persistentHealthMetaComponent::setOpenIssues);
         optionalIf(healthMeta.hasOpenPRs(), healthMeta.getOpenPRs()).ifPresent(persistentHealthMetaComponent::setOpenPRs);
-        optionalIf(healthMeta.hasLastCommitDate(), healthMeta.getLastCommitDate()).ifPresent(persistentHealthMetaComponent::setLastCommitDate);
+        optionalIf(healthMeta.hasLastCommitDate(), healthMeta.getLastCommitDate())
+                .map(ProtoUtil::convertToDate)
+                .ifPresent(persistentHealthMetaComponent::setLastCommitDate);
         optionalIf(healthMeta.hasBusFactor(), healthMeta.getBusFactor()).ifPresent(persistentHealthMetaComponent::setBusFactor);
         optionalIf(healthMeta.hasHasReadme(), healthMeta.getHasReadme()).ifPresent(persistentHealthMetaComponent::setHasReadme);
         optionalIf(healthMeta.hasHasCodeOfConduct(), healthMeta.getHasCodeOfConduct()).ifPresent(persistentHealthMetaComponent::setHasCodeOfConduct);
@@ -133,7 +136,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         optionalIf(healthMeta.hasScoreCardScore(), healthMeta.getScoreCardScore()).ifPresent(persistentHealthMetaComponent::setScorecardScore);
         optionalIf(healthMeta.hasScoreCardReferenceVersion(), healthMeta.getScoreCardReferenceVersion()).ifPresent(persistentHealthMetaComponent::setScorecardReferenceVersion);
         optionalIf(healthMeta.hasScoreCardTimestamp(), healthMeta.getScoreCardTimestamp())
-                .map(ts -> new Date(ts.getSeconds() * 1_000L + ts.getNanos() / 1_000_000L))
+                .map(ProtoUtil::convertToDate)
                 .ifPresent(persistentHealthMetaComponent::setScorecardTimestamp);
 
         // Put Scorecard check results into JSON for serialization

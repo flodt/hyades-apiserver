@@ -46,7 +46,7 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HealthMetaComponent implements Serializable {
     @Serial
-    private static final long serialVersionUID = -671880241057005336L;
+    private static final long serialVersionUID = -8130431851972473899L;
 
     @PrimaryKey
     @Persistent(valueStrategy = IdGeneratorStrategy.NATIVE)
@@ -88,8 +88,8 @@ public class HealthMetaComponent implements Serializable {
     private Integer openPRs;
 
     @Persistent
-    @Column(name = "LAST_COMMIT_DATE")
-    private String lastCommitDate;
+    @Column(name = "LAST_COMMIT")
+    private Date lastCommit;
 
     @Persistent
     @Column(name = "BUS_FACTOR")
@@ -217,12 +217,12 @@ public class HealthMetaComponent implements Serializable {
     }
 
     @Schema(description = "Date of last commit in component's source code repository")
-    public String getLastCommitDate() {
-        return lastCommitDate;
+    public Date getLastCommit() {
+        return lastCommit;
     }
 
-    public void setLastCommitDate(String lastCommitDate) {
-        this.lastCommitDate = lastCommitDate;
+    public void setLastCommitDate(Date lastCommit) {
+        this.lastCommit = lastCommit;
     }
 
     @Schema(description = "Bus Factor of contributors in the component's source code repository")
