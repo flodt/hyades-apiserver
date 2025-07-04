@@ -105,6 +105,7 @@ import static org.dependencytrack.common.MdcKeys.MDC_BOM_VERSION;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_NAME;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_UUID;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_VERSION;
+import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK;
 import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK;
 import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TIME_SPAN;
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverter.convertComponents;
@@ -119,6 +120,7 @@ import static org.dependencytrack.parser.cyclonedx.util.ModelConverterProto.conv
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverterProto.convertToProject;
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverterProto.convertToProjectMetadata;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.useJdbiTransaction;
+import static org.dependencytrack.proto.repometaanalysis.v1.FetchMeta.FETCH_META_HEALTH;
 import static org.dependencytrack.proto.repometaanalysis.v1.FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION;
 import static org.dependencytrack.proto.repometaanalysis.v1.FetchMeta.FETCH_META_LATEST_VERSION;
 import static org.dependencytrack.util.PersistenceUtil.applyIfChanged;
@@ -1170,6 +1172,15 @@ public class BomUploadProcessingTask implements Subscriber {
             for (final Component component : components) {
                 if (component.getPurl() == null) {
                     continue;
+                }
+
+                if (SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK.contains(component.getPurl().getType())) {
+                    events.add(new ComponentRepositoryMetaAnalysisEvent(
+                            null,
+                            component.getPurlCoordinates().toString(),
+                            component.isInternal(),
+                            FETCH_META_HEALTH
+                    ));
                 }
 
                 if (!SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK.contains(component.getPurl().getType())) {

@@ -46,6 +46,7 @@ import org.dependencytrack.event.kafka.componentmeta.HandlerFactory;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ComponentIdentity;
 import org.dependencytrack.model.ComponentOccurrence;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityAnalysis;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.License;
@@ -491,11 +492,7 @@ public class ComponentResource extends AbstractApiResource {
                         new ComponentProjection(component.getUuid(), component.getPurlCoordinates().toString(),
                                 component.isInternal(), component.getPurl());
                 try {
-                    Handler<IntegrityMetaComponent> repoMetaHandler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
-                    IntegrityMetaComponent integrityMetaComponent = repoMetaHandler.handle();
-                    if (integrityMetaComponent != null && (integrityMetaComponent.getStatus() == PROCESSED || integrityMetaComponent.getStatus() == NOT_AVAILABLE)) {
-                        calculateIntegrityResult(integrityMetaComponent, component, qm);
-                    }
+                    processIntegrityAndHealthMetaForComponent(qm, component, componentProjection);
                 } catch (MalformedPackageURLException ex) {
                     LOGGER.warn("Unable to process package url %s".formatted(componentProjection.purl()));
                 }
@@ -506,6 +503,22 @@ public class ComponentResource extends AbstractApiResource {
             kafkaEventDispatcher.dispatchEvent(vulnAnalysisEvent);
             return Response.status(Response.Status.CREATED).entity(component).build();
         }
+    }
+
+    private void processIntegrityAndHealthMetaForComponent(QueryManager qm, Component component, ComponentProjection componentProjection) throws MalformedPackageURLException {
+        Handler<IntegrityMetaComponent> repoMetaHandler = HandlerFactory.createIntegrityMetaHandler(
+                componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION
+        );
+        IntegrityMetaComponent integrityMetaComponent = repoMetaHandler.handle();
+
+        if (integrityMetaComponent != null && (integrityMetaComponent.getStatus() == PROCESSED || integrityMetaComponent.getStatus() == NOT_AVAILABLE)) {
+            calculateIntegrityResult(integrityMetaComponent, component, qm);
+        }
+
+        Handler<HealthMetaComponent> healthMetaHandler = HandlerFactory.createHealthMetaHandler(
+                componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_HEALTH
+        );
+        healthMetaHandler.handle();
     }
 
     @POST
@@ -615,12 +628,7 @@ public class ComponentResource extends AbstractApiResource {
                             new ComponentProjection(component.getUuid(), component.getPurlCoordinates().toString(),
                                     component.isInternal(), component.getPurl());
                     try {
-
-                        Handler<IntegrityMetaComponent> repoMetaHandler = HandlerFactory.createIntegrityMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
-                        IntegrityMetaComponent integrityMetaComponent = repoMetaHandler.handle();
-                        if (integrityMetaComponent != null && (integrityMetaComponent.getStatus() == PROCESSED || integrityMetaComponent.getStatus() == NOT_AVAILABLE)) {
-                            calculateIntegrityResult(integrityMetaComponent, component, qm);
-                        }
+                        processIntegrityAndHealthMetaForComponent(qm, component, componentProjection);
                     } catch (MalformedPackageURLException ex) {
                         LOGGER.warn("Unable to determine package url type for this purl %s".formatted(component.getPurl().getType()), ex);
                     }

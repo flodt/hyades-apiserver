@@ -139,6 +139,7 @@ public class RepositoryMetaAnalysisTask implements Subscriber {
     private void dispatchComponents(final List<ComponentProjection> components) {
         for (final var component : components) {
             kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_LATEST_VERSION));
+            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_HEALTH));
         }
     }
 
