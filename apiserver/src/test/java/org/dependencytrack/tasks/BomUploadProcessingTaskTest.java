@@ -62,6 +62,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+
 import javax.jdo.JDOObjectNotFoundException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -83,6 +84,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.apache.commons.io.IOUtils.resourceToURL;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -141,6 +143,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name()),
+                event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name())
         );
         qm.getPersistenceManager().refresh(project);
@@ -302,6 +305,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name()),
+                event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name())
         );
         qm.getPersistenceManager().refresh(project);
@@ -600,7 +604,8 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
 
         // Make sure we ingested all components of the BOM.
         final List<Component> components = qm.getAllComponents(project);
-        assertThat(components).hasSize(9056);
+        final int EXPECTED_COMPONENTS = 9056;
+        assertThat(components).hasSize(EXPECTED_COMPONENTS);
 
         // Assert some basic properties that should be present on all components.
         for (final Component component : components) {
@@ -627,7 +632,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
         assertThat(vulnerabilityScan).isNotNull();
         assertThat(vulnerabilityScan.getTargetType()).isEqualTo(VulnerabilityScan.TargetType.PROJECT);
         assertThat(vulnerabilityScan.getTargetIdentifier()).isEqualTo(project.getUuid());
-        assertThat(vulnerabilityScan.getExpectedResults()).isEqualTo(9056);
+        assertThat(vulnerabilityScan.getExpectedResults()).isEqualTo(EXPECTED_COMPONENTS);
         assertThat(vulnerabilityScan.getReceivedResults()).isZero();
 
         // Verify that all vulnerability analysis commands have been sent.
@@ -635,14 +640,16 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
                 .map(ProducerRecord::topic)
                 .filter(KafkaTopics.VULN_ANALYSIS_COMMAND.name()::equals)
                 .count();
-        assertThat(vulnAnalysisCommandsSent).isEqualTo(9056);
+        assertThat(vulnAnalysisCommandsSent).isEqualTo(EXPECTED_COMPONENTS);
 
         // Verify that all repository meta analysis commands have been sent.
         final long repoMetaAnalysisCommandsSent = kafkaMockProducer.history().stream()
                 .map(ProducerRecord::topic)
                 .filter(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name()::equals)
                 .count();
-        assertThat(repoMetaAnalysisCommandsSent).isEqualTo(9056);
+
+        // We're sending two REPO_META_ANALYSIS_COMMANDs per component (one for repo meta and one for health meta)
+        assertThat(repoMetaAnalysisCommandsSent).isEqualTo(2 * EXPECTED_COMPONENTS);
     }
 
     @Test // https://github.com/DependencyTrack/dependency-track/issues/2519
@@ -846,6 +853,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
                     assertThat(notification.getGroup()).isEqualTo(Group.GROUP_BOM_CONSUMED);
                 },
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name()),
+                event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name())
                 // BOM_PROCESSED notification should not have been sent.
         );
@@ -1566,7 +1574,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
         final Project project = qm.createProject("Acme Example", null, "1.0", null, null, null, null, false);
         qm.persist(project);
         List<String> boms = new ArrayList<>(Arrays.asList("bom-issue3936-authors.json", "bom-issue3936-author.json", "bom-issue3936-both.json"));
-        int i=0;
+        int i = 0;
         for (String bom : boms) {
             final var bomUploadEvent = new BomUploadEvent(qm.detach(Project.class, project.getId()), storeBomFile(bom));
             qm.createWorkflowSteps(bomUploadEvent.getChainIdentifier());
@@ -1762,6 +1770,7 @@ public class BomUploadProcessingTaskTest extends PersistenceCapableTest {
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.NOTIFICATION_BOM.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name()),
+                event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name()),
                 event -> assertThat(event.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name())
         );
         qm.getPersistenceManager().refresh(project);
