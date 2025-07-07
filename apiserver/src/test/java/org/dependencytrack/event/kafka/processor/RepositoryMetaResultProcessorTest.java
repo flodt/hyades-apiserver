@@ -21,12 +21,14 @@ package org.dependencytrack.event.kafka.processor;
 import com.google.protobuf.Timestamp;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityAnalysis;
 import org.dependencytrack.model.IntegrityMatchStatus;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.RepositoryMetaComponent;
 import org.dependencytrack.model.RepositoryType;
 import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
+import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.IntegrityMeta;
 import org.junit.Before;
 import org.junit.Rule;
@@ -698,5 +700,68 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(integrityMetaComponent.getRepositoryUrl()).isNull();
         assertThat(integrityMetaComponent.getLastFetch()).isEqualTo(date);
         assertThat(integrityMetaComponent.getStatus()).isEqualTo(FetchStatus.IN_PROGRESS);
+    }
+
+    @Test
+    public void processNewHealthMetaModelTest() throws Exception {
+        final var result = AnalysisResult.newBuilder()
+                .setComponent(org.dependencytrack.proto.repometaanalysis.v1.Component.newBuilder()
+                        .setPurl("pkg:maven/foo/bar@1.2.3"))
+                .setHealthMeta(HealthMeta.newBuilder()
+                        .setScoreCardScore(9.8f)
+                        .setStars(42))
+                .build();
+
+        final var processor = new RepositoryMetaResultProcessor();
+        processor.process(aConsumerRecord("pkg:maven/foo/bar", result).build());
+
+        final HealthMetaComponent healthMetaComponent =
+                qm.getHealthMetaComponent("pkg:maven/foo/bar@1.2.3");
+
+        assertThat(healthMetaComponent).isNotNull();
+        assertThat(healthMetaComponent.getStars()).isEqualTo(42);
+        assertThat(healthMetaComponent.getScorecardScore()).isEqualTo(9.8f);
+        assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
+    }
+
+    @Test
+    public void processWithoutHealthMetaResultTest() throws Exception {
+        final var result = AnalysisResult.newBuilder().build();
+
+        final var processor = new RepositoryMetaResultProcessor();
+        processor.process(aConsumerRecord("pkg:maven/foo/bar", result).build());
+
+        try (Query<HealthMetaComponent> query = qm.getPersistenceManager().newQuery(HealthMetaComponent.class)) {
+            query.setResult("count(this)");
+            assertThat(query.executeResultUnique(Long.class)).isZero();
+        }
+    }
+
+    @Test
+    public void processUpdateExistingHealthMetaTest() throws Exception {
+        final var healthMetaComponent = new HealthMetaComponent();
+        healthMetaComponent.setPurl("pkg:maven/foo/bar@1.2.3");
+        healthMetaComponent.setStatus(FetchStatus.PROCESSED);
+        healthMetaComponent.setScorecardScore(10.0f);
+        healthMetaComponent.setStars(500);
+
+        qm.persist(healthMetaComponent);
+
+        final var result = AnalysisResult.newBuilder()
+                .setComponent(org.dependencytrack.proto.repometaanalysis.v1.Component.newBuilder()
+                        .setPurl("pkg:maven/foo/bar@1.2.3"))
+                .setHealthMeta(HealthMeta.newBuilder()
+                        .setScoreCardScore(0.0f)
+                        .setStars(1))
+                .build();
+
+        final var processor = new RepositoryMetaResultProcessor();
+        processor.process(aConsumerRecord("pkg:maven/foo/bar", result).build());
+
+        qm.getPersistenceManager().refresh(healthMetaComponent);
+        assertThat(healthMetaComponent).isNotNull();
+        assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
+        assertThat(healthMetaComponent.getScorecardScore()).isEqualTo(0.0f);
+        assertThat(healthMetaComponent.getStars()).isEqualTo(1);
     }
 }
