@@ -18,11 +18,13 @@
  */
 package org.dependencytrack.tasks;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.event.PortfolioRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.ProjectRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.kafka.KafkaTopics;
 import org.dependencytrack.model.Component;
+import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import org.junit.Test;
 
 import java.util.Date;
@@ -33,6 +35,14 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.dependencytrack.util.KafkaTestUtil.deserializeValue;
 
 public class RepositoryMetaAnalysisTaskTest extends PersistenceCapableTest {
+    private static void assertThatRecordIsCorrect(ProducerRecord<byte[], byte[]> record, String expectedPurl,
+            boolean expectedInternal, FetchMeta expectedFetchMeta) {
+        assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
+        final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
+        assertThat(command.getComponent().getPurl()).isEqualTo(expectedPurl);
+        assertThat(command.getComponent().getInternal()).isEqualTo(expectedInternal);
+        assertThat(command.getFetchMeta()).isEqualTo(expectedFetchMeta);
+    }
 
     @Test
     public void testPortfolioRepositoryMetaAnalysis() {
@@ -94,21 +104,13 @@ public class RepositoryMetaAnalysisTaskTest extends PersistenceCapableTest {
                 record -> assertThat(record.topic()).isEqualTo(KafkaTopics.NOTIFICATION_PROJECT_CREATED.name()), // projectC
                 record -> assertThat(record.topic()).isEqualTo(KafkaTopics.NOTIFICATION_PROJECT_CREATED.name()), // projectD
                 record -> assertThat(record.topic()).isEqualTo(KafkaTopics.NOTIFICATION_PROJECT_CREATED.name()), // projectE
-                record -> {
-                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
-                    final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
-                    assertThat(command.getComponent().getPurl()).isEqualTo("pkg:maven/acme/acme-lib-a@1.0.1");
-                    assertThat(command.getComponent().getInternal()).isFalse();
-                },
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", false, FetchMeta.FETCH_META_LATEST_VERSION),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", false, FetchMeta.FETCH_META_HEALTH),
                 // componentProjectB must not have been submitted, because it does not have a PURL
                 // componentProjectC must not have been submitted, because it belongs to an inactive project
                 // componentProjectD has the same PURL coordinates as componentProjectA and is not submitted again
-                record -> {
-                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
-                    final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
-                    assertThat(command.getComponent().getPurl()).isEqualTo("pkg:maven/acme/acme-lib-a@1.0.1");
-                    assertThat(command.getComponent().getInternal()).isTrue();
-                }
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", true, FetchMeta.FETCH_META_LATEST_VERSION),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", true, FetchMeta.FETCH_META_HEALTH)
         );
     }
 
@@ -161,25 +163,13 @@ public class RepositoryMetaAnalysisTaskTest extends PersistenceCapableTest {
 
         assertThat(kafkaMockProducer.history()).satisfiesExactlyInAnyOrder(
                 record -> assertThat(record.topic()).isEqualTo(KafkaTopics.NOTIFICATION_PROJECT_CREATED.name()),
-                record -> {
-                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
-                    final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
-                    assertThat(command.getComponent().getPurl()).isEqualTo("pkg:maven/acme/acme-lib-a@1.0.1");
-                    assertThat(command.getComponent().getInternal()).isFalse();
-                },
-                record -> {
-                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
-                    final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
-                    assertThat(command.getComponent().getPurl()).isEqualTo("pkg:maven/acme/acme-lib-a@1.0.1");
-                    assertThat(command.getComponent().getInternal()).isTrue();
-                },
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", false, FetchMeta.FETCH_META_LATEST_VERSION),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", false, FetchMeta.FETCH_META_HEALTH),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", true, FetchMeta.FETCH_META_LATEST_VERSION),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-a@1.0.1", true, FetchMeta.FETCH_META_HEALTH),
                 // componentB must not have been submitted, because it does not have a PURL
-                record -> {
-                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
-                    final var command = deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
-                    assertThat(command.getComponent().getPurl()).isEqualTo("pkg:maven/acme/acme-lib-c@3.0.1");
-                    assertThat(command.getComponent().getInternal()).isFalse();
-                }
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-c@3.0.1", false, FetchMeta.FETCH_META_LATEST_VERSION),
+                record -> assertThatRecordIsCorrect(record, "pkg:maven/acme/acme-lib-c@3.0.1", false, FetchMeta.FETCH_META_HEALTH)
                 // componentD has the same PURL coordinates as componentA nad is not submitted again
         );
     }
