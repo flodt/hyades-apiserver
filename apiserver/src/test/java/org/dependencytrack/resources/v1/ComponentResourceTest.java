@@ -36,6 +36,7 @@ import org.dependencytrack.model.OrganizationalContact;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.RepositoryMetaComponent;
 import org.dependencytrack.model.RepositoryType;
+import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import org.dependencytrack.util.KafkaTestUtil;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
@@ -714,6 +715,13 @@ public class ComponentResourceTest extends ResourceTest {
                     assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
                     final var command = KafkaTestUtil.deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
                     assertThat(command.getComponent().getPurl()).isEqualTo(json.getString("purl"));
+                    assertThat(command.getFetchMeta()).isEqualTo(FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+                },
+                record -> {
+                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
+                    final var command = KafkaTestUtil.deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
+                    assertThat(command.getComponent().getPurl()).isEqualTo(json.getString("purl"));
+                    assertThat(command.getFetchMeta()).isEqualTo(FetchMeta.FETCH_META_HEALTH);
                 },
                 record -> {
                     assertThat(record.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name());
@@ -828,6 +836,13 @@ public class ComponentResourceTest extends ResourceTest {
                     assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
                     final var command = KafkaTestUtil.deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
                     assertThat(command.getComponent().getPurl()).isEqualTo(json.getString("purl"));
+                    assertThat(command.getFetchMeta()).isEqualTo(FetchMeta.FETCH_META_INTEGRITY_DATA_AND_LATEST_VERSION);
+                },
+                record -> {
+                    assertThat(record.topic()).isEqualTo(KafkaTopics.REPO_META_ANALYSIS_COMMAND.name());
+                    final var command = KafkaTestUtil.deserializeValue(KafkaTopics.REPO_META_ANALYSIS_COMMAND, record);
+                    assertThat(command.getComponent().getPurl()).isEqualTo(json.getString("purl"));
+                    assertThat(command.getFetchMeta()).isEqualTo(FetchMeta.FETCH_META_HEALTH);
                 },
                 record -> {
                     assertThat(record.topic()).isEqualTo(KafkaTopics.VULN_ANALYSIS_COMMAND.name());
