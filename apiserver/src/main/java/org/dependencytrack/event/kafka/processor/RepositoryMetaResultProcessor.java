@@ -92,16 +92,6 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         final AnalysisResult result = record.value();
         HealthMetaComponent persistentHealthMetaComponent = qm.getHealthMetaComponent(purl.toString());
 
-        // Check for already processed component, don't need to do anything there
-        if (persistentHealthMetaComponent != null
-                && Objects.equals(persistentHealthMetaComponent.getStatus(), FetchStatus.PROCESSED)) {
-            LOGGER.warn(
-                    "Received health information for %s that has already been processed; discarding."
-                            .formatted(purl)
-            );
-            return;
-        }
-
         // Check if we have health meta information
         if (!result.hasHealthMeta()) {
             LOGGER.warn("Analysis result for %s did not contain health metadata; discarding.".formatted(purl));
@@ -109,8 +99,10 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         }
 
         // Create new component if we don't have any yet
-        if (persistentHealthMetaComponent == null) {
+        final boolean isNew = (persistentHealthMetaComponent == null);
+        if (isNew) {
             persistentHealthMetaComponent = new HealthMetaComponent();
+            persistentHealthMetaComponent.setPurl(purl.toString());
         }
 
         // Persist all fields
@@ -166,8 +158,14 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
                 })
                 .ifPresent(persistentHealthMetaComponent::setScorecardChecksJson);
 
+        persistentHealthMetaComponent.setStatus(FetchStatus.PROCESSED);
+
         // Update
-        qm.updateHealthMetaComponent(persistentHealthMetaComponent);
+        if (isNew) {
+            qm.createHealthMetaComponent(persistentHealthMetaComponent);
+        } else {
+            qm.updateHealthMetaComponent(persistentHealthMetaComponent);
+        }
     }
 
     private IntegrityMetaComponent synchronizeIntegrityMetadata(final QueryManager queryManager, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
