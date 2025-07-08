@@ -33,6 +33,7 @@ import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
 import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.IntegrityMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.ScoreCardCheck;
+import org.dependencytrack.util.ProtoUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -710,24 +711,65 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void processNewHealthMetaModelTest() throws Exception {
-        final var result = AnalysisResult.newBuilder()
+        Instant lastCommitInstant = Instant.parse("2025-07-01T12:00:00Z");
+        Instant scorecardInstant = Instant.parse("2025-07-02T13:00:00Z");
+
+        Timestamp lastCommitTs = Timestamp.newBuilder()
+                .setSeconds(lastCommitInstant.getEpochSecond())
+                .setNanos(lastCommitInstant.getNano())
+                .build();
+        Timestamp scorecardTs = Timestamp.newBuilder()
+                .setSeconds(scorecardInstant.getEpochSecond())
+                .setNanos(scorecardInstant.getNano())
+                .build();
+
+        AnalysisResult result = AnalysisResult.newBuilder()
                 .setComponent(org.dependencytrack.proto.repometaanalysis.v1.Component.newBuilder()
                         .setPurl("pkg:maven/foo/bar@1.2.3"))
                 .setHealthMeta(HealthMeta.newBuilder()
+                        .setStars(42)
+                        .setForks(10)
+                        .setContributors(5)
+                        .setCommitFrequency(3.14f)
+                        .setOpenIssues(7)
+                        .setOpenPRs(2)
+                        .setLastCommitDate(lastCommitTs)
+                        .setBusFactor(1)
+                        .setHasReadme(true)
+                        .setHasCodeOfConduct(false)
+                        .setHasSecurityPolicy(true)
+                        .setDependents(4)
+                        .setFiles(100)
+                        .setIsRepoArchived(true)
                         .setScoreCardScore(9.8f)
-                        .setStars(42))
+                        .setScoreCardReferenceVersion("v1.2.3")
+                        .setScoreCardTimestamp(scorecardTs))
                 .build();
 
-        final var processor = new RepositoryMetaResultProcessor();
+        var processor = new RepositoryMetaResultProcessor();
         processor.process(aConsumerRecord("pkg:maven/foo/bar", result).build());
 
-        final HealthMetaComponent healthMetaComponent =
-                qm.getHealthMetaComponent("pkg:maven/foo/bar@1.2.3");
+        HealthMetaComponent h = qm.getHealthMetaComponent("pkg:maven/foo/bar@1.2.3");
 
-        assertThat(healthMetaComponent).isNotNull();
-        assertThat(healthMetaComponent.getStars()).isEqualTo(42);
-        assertThat(healthMetaComponent.getScorecardScore()).isEqualTo(9.8f);
-        assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
+        assertThat(h).isNotNull();
+        assertThat(h.getStars()).isEqualTo(42);
+        assertThat(h.getForks()).isEqualTo(10);
+        assertThat(h.getContributors()).isEqualTo(5);
+        assertThat(h.getCommitFrequency()).isEqualTo(3.14f);
+        assertThat(h.getOpenIssues()).isEqualTo(7);
+        assertThat(h.getOpenPRs()).isEqualTo(2);
+        assertThat(h.getBusFactor()).isEqualTo(1);
+        assertThat(h.getDependents()).isEqualTo(4);
+        assertThat(h.getFiles()).isEqualTo(100);
+        assertThat(h.getScorecardScore()).isEqualTo(9.8f);
+        assertThat(h.getHasReadme()).isTrue();
+        assertThat(h.getHasCodeOfConduct()).isFalse();
+        assertThat(h.getHasSecurityPolicy()).isTrue();
+        assertThat(h.getRepoArchived()).isTrue();
+        assertThat(h.getLastCommit()).isEqualTo(ProtoUtil.convertToDate(lastCommitTs));
+        assertThat(h.getScorecardTimestamp()).isEqualTo(ProtoUtil.convertToDate(scorecardTs));
+        assertThat(h.getScorecardReferenceVersion()).isEqualTo("v1.2.3");
+        assertThat(h.getStatus()).isEqualTo(FetchStatus.PROCESSED);
     }
 
     @Test
