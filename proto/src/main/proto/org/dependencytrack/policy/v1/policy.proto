@@ -66,29 +66,6 @@ message Component {
   // When the component current version last modified.
   optional google.protobuf.Timestamp published_at = 53;
   optional string latest_version = 54;
-
-  optional HealthMeta health_meta = 60;
-}
-
-message HealthMeta {
-  optional int32 stars = 1;
-  optional int32 forks = 2;
-  optional int32 contributors = 3;
-  optional float commitFrequency = 4;
-  optional int32 openIssues = 5;
-  optional int32 openPRs = 6;
-  optional google.protobuf.Timestamp lastCommitDate = 7;
-  optional int32 busFactor = 8;
-  optional bool hasReadme = 9;
-  optional bool hasCodeOfConduct = 10;
-  optional bool hasSecurityPolicy = 11;
-  optional int32 dependents = 12;
-  optional int32 files = 13;
-  optional bool isRepoArchived = 14;
-  // individual scoreCardChecks not included here (= 15)
-  optional float scoreCardScore = 16;
-  optional string scoreCardReferenceVersion = 17;
-  optional google.protobuf.Timestamp scoreCardTimestamp = 18;
 }
 
 message License {
