@@ -90,21 +90,4 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
     public HealthMetaComponent createHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
         return persist(healthMetaComponent);
     }
-
-    @Override
-    public boolean deleteHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
-        return deleteHealthMetaComponent(healthMetaComponent.getPurl());
-    }
-
-    @Override
-    public boolean deleteHealthMetaComponent(String purl) {
-        final HealthMetaComponent toDelete = getHealthMetaComponent(purl);
-        if (toDelete != null) {
-            pm.deletePersistent(toDelete);
-            return true;
-        } else {
-            LOGGER.debug("No record found in HealthMetaComponent for purl " + purl);
-            return false;
-        }
-    }
 }

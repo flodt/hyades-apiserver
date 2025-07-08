@@ -1599,14 +1599,6 @@ public class QueryManager extends AlpineQueryManager {
         return getHealthMetaQueryManager().createHealthMetaComponent(healthMetaComponent);
     }
 
-    public boolean deleteHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
-        return getHealthMetaQueryManager().deleteHealthMetaComponent(healthMetaComponent);
-    }
-
-    public boolean deleteHealthMetaComponent(String purl) {
-        return getHealthMetaQueryManager().deleteHealthMetaComponent(purl);
-    }
-
     public IntegrityAnalysis getIntegrityAnalysisByComponentUuid(UUID uuid) {
         return getIntegrityAnalysisQueryManager().getIntegrityAnalysisByComponentUuid(uuid);
     }
