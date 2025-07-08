@@ -86,6 +86,7 @@ public class ComponentProjection {
 
     @MappedField(sqlColumnName = "BLAKE3")
     public String blake3;
+
     @MappedField(protoFieldName = "resolved_license", sqlColumnName = "LICENSE_ID")
     public Long resolvedLicenseId;
 
@@ -95,7 +96,64 @@ public class ComponentProjection {
     public Date publishedAt;
 
     public String latestVersion;
+
     @MappedField(protoFieldName = "license_expression", sqlColumnName = "LICENSE_EXPRESSION")
     public String licenseExpression;
 
+    @MappedField(sqlColumnName = "STARS")
+    public Integer stars;
+
+    @MappedField(sqlColumnName = "FORKS")
+    public Integer forks;
+
+    @MappedField(sqlColumnName = "CONTRIBUTORS")
+    public Integer contributors;
+
+    @MappedField(sqlColumnName = "COMMIT_FREQUENCY")
+    public Float commitFrequency;
+
+    @MappedField(sqlColumnName = "OPEN_ISSUES")
+    public Integer openIssues;
+
+    @MappedField(sqlColumnName = "OPEN_PRS")
+    public Integer openPRs;
+
+    @MappedField(sqlColumnName = "LAST_COMMIT")
+    public Date lastCommit;
+
+    @MappedField(sqlColumnName = "BUS_FACTOR")
+    public Integer busFactor;
+
+    @MappedField(sqlColumnName = "HAS_README")
+    public Boolean hasReadme;
+
+    @MappedField(sqlColumnName = "HAS_CODE_OF_CONDUCT")
+    public Boolean hasCodeOfConduct;
+
+    @MappedField(sqlColumnName = "HAS_SECURITY_POLICY")
+    public Boolean hasSecurityPolicy;
+
+    @MappedField(sqlColumnName = "DEPENDENTS")
+    public Integer dependents;
+
+    @MappedField(sqlColumnName = "FILES")
+    public Integer files;
+
+    @MappedField(sqlColumnName = "IS_REPO_ARCHIVED")
+    public Boolean isRepoArchived;
+
+    @MappedField(sqlColumnName = "SCORECARD_SCORE")
+    public Float scorecardScore;
+
+    @MappedField(sqlColumnName = "SCORECARD_REF_VERSION")
+    public String scorecardReferenceVersion;
+
+    @MappedField(sqlColumnName = "SCORECARD_TIMESTAMP")
+    public Date scorecardTimestamp;
+
+    @MappedField(sqlColumnName = "SCORECARD_CHECKS_JSON")
+    public String scorecardChecksJson;
+
+    @MappedField(sqlColumnName = "LAST_FETCH")
+    public Date lastFetch;
 }
