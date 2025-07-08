@@ -16,13 +16,16 @@
  * SPDX-License-Identifier: Apache-2.0
  * Copyright (c) OWASP Foundation. All Rights Reserved.
  */
-package org.dependencytrack.event.kafka.componentmeta;
+package org.dependencytrack.event.kafka.componentmeta.integrity;
 
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
 import org.dependencytrack.event.kafka.KafkaTopics;
+import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
+import org.dependencytrack.event.kafka.componentmeta.Handler;
+import org.dependencytrack.event.kafka.componentmeta.HandlerFactory;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import org.dependencytrack.util.PurlUtil;

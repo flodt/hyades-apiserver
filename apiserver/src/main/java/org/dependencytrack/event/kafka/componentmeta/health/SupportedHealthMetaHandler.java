@@ -32,7 +32,7 @@ import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
 import java.time.Instant;
 import java.util.Date;
 
-import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TIME_SPAN;
+import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TIME_SPAN_HEALTH_META;
 
 public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaComponent> {
     public SupportedHealthMetaHandler(ComponentProjection componentProjection, QueryManager queryManager, KafkaEventDispatcher kafkaEventDispatcher, FetchMeta fetchMeta) {
@@ -50,14 +50,14 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
 
     private boolean lastFetchIsStale(HealthMetaComponent persistentHealthMeta) {
         return persistentHealthMeta.getLastFetch() != null
-                && Date.from(Instant.now()).getTime() - persistentHealthMeta.getLastFetch().getTime() > TIME_SPAN;
+                && Date.from(Instant.now()).getTime() - persistentHealthMeta.getLastFetch().getTime() > TIME_SPAN_HEALTH_META;
     }
 
     @Override
     public HealthMetaComponent handle() throws MalformedPackageURLException {
         HealthMetaComponent persistentHealthMeta = queryManager.getHealthMetaComponent(componentProjection.purl().toString());
 
-        // Case 1: don't have anything locally yet, trigger request and create new entry
+        // Case 1: don't have anything in the DB yet, trigger request and create new entry
         if (persistentHealthMeta == null) {
             HealthMetaComponent healthMetaComponent = queryManager
                     .createHealthMetaComponent(createHealthMetaComponent(componentProjection.purl().toString()));
@@ -84,6 +84,7 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
         }
 
         if (needsUpdate) {
+            persistentHealthMeta.setStatus(FetchStatus.IN_PROGRESS);
             persistentHealthMeta.setLastFetch(Date.from(Instant.now()));
             persistentHealthMeta = queryManager.updateHealthMetaComponent(persistentHealthMeta);
             dispatchEvent();

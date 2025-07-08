@@ -88,7 +88,6 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
 
     @Override
     public HealthMetaComponent createHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
-        healthMetaComponent.setLastFetch(Date.from(Instant.now()));
         return persist(healthMetaComponent);
     }
 

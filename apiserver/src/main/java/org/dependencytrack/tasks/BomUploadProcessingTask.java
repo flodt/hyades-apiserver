@@ -107,7 +107,7 @@ import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_UUID;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_VERSION;
 import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK;
 import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK;
-import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TIME_SPAN;
+import static org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants.TIME_SPAN_INTEGRITY_META;
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverter.convertComponents;
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverter.convertDependencyGraph;
 import static org.dependencytrack.parser.cyclonedx.util.ModelConverter.convertServices;
@@ -1225,7 +1225,7 @@ public class BomUploadProcessingTask implements Subscriber {
             return true;
         } else if (integrityMetaComponent.getStatus() == null
                 || (integrityMetaComponent.getStatus() == FetchStatus.IN_PROGRESS
-                && (Date.from(Instant.now()).getTime() - integrityMetaComponent.getLastFetch().getTime()) > TIME_SPAN)) {
+                && (Date.from(Instant.now()).getTime() - integrityMetaComponent.getLastFetch().getTime()) > TIME_SPAN_INTEGRITY_META)) {
             integrityMetaComponent.setLastFetch(Date.from(Instant.now()));
             return true;
         } else if (integrityMetaComponent.getStatus() == FetchStatus.PROCESSED || integrityMetaComponent.getStatus() == FetchStatus.NOT_AVAILABLE) {
