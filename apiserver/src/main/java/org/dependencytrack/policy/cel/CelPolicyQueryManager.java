@@ -178,9 +178,6 @@ class CelPolicyQueryManager implements AutoCloseable {
                 .filter(m -> healthSqlColumns.contains(m.sqlColumnName()))
                 .toList();
 
-        boolean shouldJoinHealth = healthMappings.stream()
-                .anyMatch(m -> protoFieldNames.contains(m.protoFieldName()));
-
         StringBuilder sqlSelectColumns = new StringBuilder(
                 Stream.concat(
                                 Stream.of(ComponentProjection.ID_FIELD_MAPPING),
@@ -199,8 +196,13 @@ class CelPolicyQueryManager implements AutoCloseable {
             sqlSelectColumns.append(", \"latestVersion\"");
         }
 
+        List<FieldMapping> selectedHealth = healthMappings.stream()
+                .filter(m -> protoFieldNames.contains(m.protoFieldName()))
+                .toList();
+        boolean shouldJoinHealth = !selectedHealth.isEmpty();
+
         if (shouldJoinHealth) {
-            for (FieldMapping m : healthMappings) {
+            for (FieldMapping m : selectedHealth) {
                 sqlSelectColumns
                         .append(", \"health\".\"")
                         .append(m.javaFieldName())
