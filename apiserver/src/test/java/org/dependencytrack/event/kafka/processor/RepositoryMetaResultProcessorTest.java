@@ -18,6 +18,8 @@
  */
 package org.dependencytrack.event.kafka.processor;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Timestamp;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.FetchStatus;
@@ -30,6 +32,7 @@ import org.dependencytrack.model.RepositoryType;
 import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
 import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.IntegrityMeta;
+import org.dependencytrack.proto.repometaanalysis.v1.ScoreCardCheck;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,9 +43,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 
 public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
 
@@ -763,5 +769,83 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
         assertThat(healthMetaComponent.getScorecardScore()).isEqualTo(0.0f);
         assertThat(healthMetaComponent.getStars()).isEqualTo(1);
+    }
+
+    @Test
+    public void processScorecardResultHealthMetaModelTest() throws Exception {
+        final var result = AnalysisResult.newBuilder()
+                .setComponent(org.dependencytrack.proto.repometaanalysis.v1.Component.newBuilder()
+                        .setPurl("pkg:maven/foo/bar@1.2.3"))
+                .setHealthMeta(
+                        HealthMeta.newBuilder()
+                                .addScoreCardChecks(
+                                        ScoreCardCheck.newBuilder()
+                                                .setName("Check A")
+                                                .setScore(0.0f)
+                                                .setDescription("Check A Description")
+                                                .setReason("Check A Reason")
+                                                .setDocumentationUrl("https://checkADocumentation.com")
+                                                .addDetails("Detail A.1")
+                                                .addDetails("Detail A.2")
+                                                .build()
+                                )
+                                .addScoreCardChecks(
+                                        ScoreCardCheck.newBuilder()
+                                                .setName("Check B")
+                                                .setScore(10.0f)
+                                                .setDescription("Check B Description")
+                                                .setReason("Check B Reason")
+                                                .setDocumentationUrl("https://checkBDocumentation.com")
+                                                .addDetails("Detail B.1")
+                                                .addDetails("Detail B.2")
+                                                .build()
+                                )
+                )
+                .build();
+
+        final var processor = new RepositoryMetaResultProcessor();
+        processor.process(aConsumerRecord("pkg:maven/foo/bar", result).build());
+
+        final HealthMetaComponent healthMetaComponent =
+                qm.getHealthMetaComponent("pkg:maven/foo/bar@1.2.3");
+
+        assertThat(healthMetaComponent).isNotNull();
+        assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<Map<String, Object>> checks = mapper.readValue(
+                healthMetaComponent.getScorecardChecksJson(), new TypeReference<List<Map<String, Object>>>() {
+                }
+        );
+
+        assertThat(checks).hasSize(2);
+
+        assertThat(checks)
+                .extracting(
+                        m -> m.get("name"),
+                        m -> m.get("description"),
+                        m -> ((Number) m.get("score")).doubleValue(),
+                        m -> m.get("reason"),
+                        m -> m.get("details"),
+                        m -> m.get("documentationUrl")
+                )
+                .containsExactly(
+                        tuple(
+                                "Check A",
+                                "Check A Description",
+                                0.0,
+                                "Check A Reason",
+                                List.of("Detail A.1", "Detail A.2"),
+                                "https://checkADocumentation.com"
+                        ),
+                        tuple(
+                                "Check B",
+                                "Check B Description",
+                                10.0,
+                                "Check B Reason",
+                                List.of("Detail B.1", "Detail B.2"),
+                                "https://checkBDocumentation.com"
+                        )
+                );
     }
 }
