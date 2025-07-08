@@ -67,7 +67,7 @@ public class ComponentHealthResource extends AbstractConfigPropertyResource {
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(
                     responseCode = "403",
-                    description = "Access to the requested component is forbidden",
+                    description = "Access to the requested project is forbidden",
                     content = @Content(schema = @Schema(implementation = ProblemDetails.class), mediaType = ProblemDetails.MEDIA_TYPE_JSON)),
             @ApiResponse(responseCode = "404", description = "The component could not be found")
 
