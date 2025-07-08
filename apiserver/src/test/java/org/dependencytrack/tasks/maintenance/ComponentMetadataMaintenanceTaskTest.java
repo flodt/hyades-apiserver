@@ -21,6 +21,8 @@ package org.dependencytrack.tasks.maintenance;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.event.maintenance.ComponentMetadataMaintenanceEvent;
 import org.dependencytrack.model.Component;
+import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.RepositoryMetaComponent;
@@ -38,6 +40,9 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
 
     @Test
     public void test() {
+        final String EXISTING_PURL = "pkg:maven/com.acme/acme-lib@1.0.0";
+        final String ORPHANED_PURL = "pkg:maven/foo/bar@1.2.3";
+
         final var project = new Project();
         project.setName("acme-app");
         qm.persist(project);
@@ -46,18 +51,18 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
         component.setProject(project);
         component.setName("acme-lib");
         component.setVersion("1.0.0");
-        component.setPurl("pkg:maven/com.acme/acme-lib@1.0.0");
+        component.setPurl(EXISTING_PURL);
         qm.persist(component);
 
         final Instant now = Instant.now();
 
         final var integrityMetadata = new IntegrityMetaComponent();
-        integrityMetadata.setPurl("pkg:maven/com.acme/acme-lib@1.0.0");
+        integrityMetadata.setPurl(EXISTING_PURL);
         integrityMetadata.setLastFetch(Date.from(now));
         qm.persist(integrityMetadata);
 
         final var orphanedIntegrityMetadata = new IntegrityMetaComponent();
-        orphanedIntegrityMetadata.setPurl("pkg:maven/foo/bar@1.2.3");
+        orphanedIntegrityMetadata.setPurl(ORPHANED_PURL);
         orphanedIntegrityMetadata.setLastFetch(Date.from(now));
         qm.persist(orphanedIntegrityMetadata);
 
@@ -77,13 +82,31 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
         orphanedRepoMetadata.setLastCheck(Date.from(now.minus(31, ChronoUnit.DAYS)));
         qm.persist(orphanedRepoMetadata);
 
+        final var healthMetadata = new HealthMetaComponent();
+        healthMetadata.setPurl(EXISTING_PURL);
+        healthMetadata.setStars(42);
+        healthMetadata.setScorecardScore(10.0f);
+        healthMetadata.setDependents(5000);
+        healthMetadata.setStatus(FetchStatus.PROCESSED);
+        qm.persist(healthMetadata);
+
+        final var orphanedHealthMetadata = new HealthMetaComponent();
+        orphanedHealthMetadata.setPurl(ORPHANED_PURL);
+        orphanedHealthMetadata.setStars(10);
+        orphanedHealthMetadata.setScorecardScore(5.0f);
+        orphanedHealthMetadata.setDependents(2000);
+        orphanedHealthMetadata.setStatus(FetchStatus.PROCESSED);
+        qm.persist(orphanedHealthMetadata);
+
         final var task = new ComponentMetadataMaintenanceTask();
         assertThatNoException().isThrownBy(() -> task.inform(new ComponentMetadataMaintenanceEvent()));
 
-        assertThat(qm.getIntegrityMetaComponent("pkg:maven/com.acme/acme-lib@1.0.0")).isNotNull();
-        assertThat(qm.getIntegrityMetaComponent("pkg:maven/foo/bar@1.2.3")).isNull();
+        assertThat(qm.getIntegrityMetaComponent(EXISTING_PURL)).isNotNull();
+        assertThat(qm.getIntegrityMetaComponent(ORPHANED_PURL)).isNull();
         assertThat(qm.getRepositoryMetaComponent(RepositoryType.MAVEN, "com.acme", "acme-lib")).isNotNull();
         assertThat(qm.getRepositoryMetaComponent(RepositoryType.MAVEN, "foo", "bar")).isNull();
+        assertThat(qm.getHealthMetaComponent(EXISTING_PURL)).isNotNull();
+        assertThat(qm.getHealthMetaComponent(ORPHANED_PURL)).isNull();
     }
 
 }

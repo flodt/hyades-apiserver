@@ -66,7 +66,8 @@ public class ComponentMetadataMaintenanceTask implements Subscriber {
 
     private record Statistics(
             int deletedIntegrityMetadata,
-            int deletedRepositoryMetadata) {
+            int deletedRepositoryMetadata,
+            int deletedHealthMetadata) {
     }
 
     private Statistics informLocked(final Handle jdbiHandle) {
@@ -76,8 +77,9 @@ public class ComponentMetadataMaintenanceTask implements Subscriber {
 
         final int numDeletedIntegrityMeta = dao.deleteOrphanIntegrityMetaComponents();
         final int numDeletedRepoMeta = dao.deleteOrphanRepositoryMetaComponents();
+        final int numDeletedHealthMeta = dao.deleteOrphanHealthMetaComponents();
 
-        return new Statistics(numDeletedIntegrityMeta, numDeletedRepoMeta);
+        return new Statistics(numDeletedIntegrityMeta, numDeletedRepoMeta, numDeletedHealthMeta);
     }
 
 }

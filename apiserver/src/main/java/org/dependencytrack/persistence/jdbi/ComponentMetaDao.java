@@ -91,6 +91,17 @@ public interface ComponentMetaDao extends SqlObject {
             """)
     int deleteOrphanIntegrityMetaComponents();
 
+    @SqlUpdate("""
+            DELETE
+            FROM "HEALTH_META_COMPONENT"
+            WHERE NOT EXISTS(
+                SELECT 1
+                FROM "COMPONENT"
+                WHERE "COMPONENT"."PURL" = "HEALTH_META_COMPONENT"."PURL"
+            )
+            """)
+    int deleteOrphanHealthMetaComponents();
+
     // TODO: Do a NOT EXISTS query against the COMPONENT table instead.
     //  Requires https://github.com/DependencyTrack/hyades/issues/1465.
     @SqlUpdate("""
