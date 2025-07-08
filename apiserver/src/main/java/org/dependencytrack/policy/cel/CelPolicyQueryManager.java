@@ -163,77 +163,60 @@ class CelPolicyQueryManager implements AutoCloseable {
     List<ComponentProjection> fetchAllComponents(final long projectId, final Collection<String> protoFieldNames) {
         List<FieldMapping> allMappings = getFieldMappings(ComponentProjection.class);
 
-        // find out which columns we need from the health metadata dynamically
         Set<String> healthSqlColumns = Arrays.stream(HealthMetaComponent.class.getDeclaredFields())
                 .map(f -> f.getAnnotation(Column.class))
                 .filter(Objects::nonNull)
                 .map(Column::name)
                 .collect(Collectors.toSet());
 
-        List<FieldMapping> componentMappings = allMappings.stream()
-                .filter(m -> !healthSqlColumns.contains(m.sqlColumnName()))
-                .toList();
+        String sqlSelectColumns = Stream.concat(
+                        Stream.of(ComponentProjection.ID_FIELD_MAPPING),
+                        allMappings.stream()
+                                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
+                )
+                .map(mapping -> {
+                    // select from health alias if it's a health column
+                    if (healthSqlColumns.contains(mapping.sqlColumnName())) {
+                        return "\"health\".\"%s\" AS \"%s\"".formatted(mapping.javaFieldName(), mapping.javaFieldName());
+                    }
+                    return "\"C\".\"%s\" AS \"%s\"".formatted(mapping.sqlColumnName(), mapping.javaFieldName());
+                })
+                .collect(Collectors.joining(", "));
 
-        List<FieldMapping> healthMappings = allMappings.stream()
+        boolean shouldJoinHealth = allMappings.stream()
+                .anyMatch(m ->
+                        healthSqlColumns.contains(m.sqlColumnName()) && protoFieldNames.contains(m.protoFieldName()));
+
+        String healthMetaSelectColumns = allMappings.stream()
                 .filter(m -> healthSqlColumns.contains(m.sqlColumnName()))
-                .toList();
-
-        StringBuilder sqlSelectColumns = new StringBuilder(
-                Stream.concat(
-                                Stream.of(ComponentProjection.ID_FIELD_MAPPING),
-                                componentMappings.stream()
-                                        .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
-                        )
-                        .map(mapping -> "\"C\".\"%s\" AS \"%s\"".formatted(mapping.sqlColumnName(), mapping.javaFieldName()))
-                        .collect(Collectors.joining(", "))
-        );
-
-        if (protoFieldNames.contains("published_at")) {
-            sqlSelectColumns.append(", \"publishedAt\"");
-        }
-
-        if (protoFieldNames.contains("latest_version")) {
-            sqlSelectColumns.append(", \"latestVersion\"");
-        }
-
-        List<FieldMapping> selectedHealth = healthMappings.stream()
-                .filter(m -> protoFieldNames.contains(m.protoFieldName()))
-                .toList();
-        boolean shouldJoinHealth = !selectedHealth.isEmpty();
-
-        if (shouldJoinHealth) {
-            for (FieldMapping m : selectedHealth) {
-                sqlSelectColumns
-                        .append(", \"health\".\"")
-                        .append(m.javaFieldName())
-                        .append("\" AS \"")
-                        .append(m.javaFieldName())
-                        .append("\"");
-            }
-        }
-
-        String healthMetaSelectColumns = healthMappings.stream()
-                .map(m -> "\"HMC\".\"" + m.sqlColumnName() + "\" AS \"" + m.javaFieldName() + "\"")
+                .map(m -> "\"HMC\".\"%s\" AS \"%s\"".formatted(m.sqlColumnName(), m.javaFieldName()))
                 .collect(Collectors.joining(", "));
 
         final Query<?> query = pm.newQuery(Query.SQL, """
                 SELECT %s, "latestVersion", "publishedAt"
-                from
-                "COMPONENT" "C"
-                LEFT JOIN LATERAL (SELECT "IMC"."PUBLISHED_AT" AS "publishedAt" FROM "INTEGRITY_META_COMPONENT" "IMC" WHERE
-                "C"."PURL" = "IMC"."PURL") AS "publishedAt" ON :shouldJoinIntegrityMeta
-                LEFT JOIN LATERAL (SELECT "RMC"."LATEST_VERSION" AS "latestVersion" FROM "REPOSITORY_META_COMPONENT" "RMC" WHERE
-                "C"."NAME" = "RMC"."NAME") AS "latestVersion" ON :shouldJoinRepoMeta
-                LEFT JOIN LATERAL (SELECT %s FROM "HEALTH_META_COMPONENT" "HMC" WHERE
-                "C"."PURL" = "HMC"."PURL") AS "health" ON :shouldJoinHealthMeta
-                WHERE
-                "PROJECT_ID" = :projectId
-                """.formatted(sqlSelectColumns.toString(), healthMetaSelectColumns));
+                FROM "COMPONENT" "C"
+                LEFT JOIN LATERAL (
+                    SELECT "IMC"."PUBLISHED_AT" AS "publishedAt" FROM "INTEGRITY_META_COMPONENT" "IMC"
+                    WHERE "C"."PURL" = "IMC"."PURL"
+                ) AS "publishedAt" ON :shouldJoinIntegrityMeta
+                LEFT JOIN LATERAL (
+                    SELECT "RMC"."LATEST_VERSION" AS "latestVersion" FROM "REPOSITORY_META_COMPONENT" "RMC"
+                    WHERE "C"."NAME" = "RMC"."NAME"
+                ) AS "latestVersion" ON :shouldJoinRepoMeta
+                LEFT JOIN LATERAL (
+                    SELECT %s FROM "HEALTH_META_COMPONENT" "HMC"
+                    WHERE "C"."PURL" = "HMC"."PURL"
+                ) AS "health" ON :shouldJoinHealthMeta
+                WHERE "PROJECT_ID" = :projectId
+                """.formatted(sqlSelectColumns, healthMetaSelectColumns));
+
         query.setNamedParameters(Map.of(
                 "shouldJoinIntegrityMeta", protoFieldNames.contains("publishedAt") || protoFieldNames.contains("published_at"),
                 "shouldJoinRepoMeta", protoFieldNames.contains("latestVersion") || protoFieldNames.contains("latest_version"),
                 "shouldJoinHealthMeta", shouldJoinHealth,
-                "projectId", projectId));
+                "projectId", projectId
+        ));
+
         try {
             return List.copyOf(query.executeResultList(ComponentProjection.class));
         } finally {
