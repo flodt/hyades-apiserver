@@ -31,6 +31,7 @@ import org.dependencytrack.model.ComponentIdentity;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.model.Epss;
 import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.License;
 import org.dependencytrack.model.LicenseGroup;
@@ -219,6 +220,28 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         metaComponent.setLastFetch(new Date());
         qm.persist(metaComponent);
 
+        final var healthMetaComponent = new HealthMetaComponent();
+        healthMetaComponent.setPurl("componentPurl");
+        healthMetaComponent.setStatus(FetchStatus.PROCESSED);
+        healthMetaComponent.setStars(1);
+        healthMetaComponent.setForks(2);
+        healthMetaComponent.setContributors(3);
+        healthMetaComponent.setCommitFrequency(4.5f);
+        healthMetaComponent.setOpenIssues(5);
+        healthMetaComponent.setOpenPRs(6);
+        healthMetaComponent.setLastCommitDate(new Date(333));
+        healthMetaComponent.setBusFactor(7);
+        healthMetaComponent.setHasReadme(true);
+        healthMetaComponent.setHasCodeOfConduct(true);
+        healthMetaComponent.setHasSecurityPolicy(false);
+        healthMetaComponent.setDependents(8);
+        healthMetaComponent.setFiles(9);
+        healthMetaComponent.setRepoArchived(false);
+        healthMetaComponent.setScorecardScore(0.75f);
+        healthMetaComponent.setScorecardReferenceVersion("scoreRefVer");
+        healthMetaComponent.setScorecardTimestamp(new Date(444));
+        qm.persist(healthMetaComponent);
+
         final var vuln = new Vulnerability();
         vuln.setUuid(UUID.fromString("ffe9743f-b916-431e-8a68-9b3ac56db72c"));
         vuln.setVulnId("CVE-001");
@@ -377,6 +400,23 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
                          && vuln.epss_score == 0.6
                          && vuln.epss_percentile == 0.2
                      )
+                   && health.stars == 1
+                   && health.forks == 2
+                   && health.contributors == 3
+                   && health.commitFrequency == 4.5
+                   && health.openIssues == 5
+                   && health.openPRs == 6
+                   && health.lastCommitDate == timestamp("1970-01-01T00:00:00.333Z")
+                   && health.busFactor == 7
+                   && health.hasReadme
+                   && health.hasCodeOfConduct
+                   && !health.hasSecurityPolicy
+                   && health.dependents == 8
+                   && health.files == 9
+                   && !health.isRepoArchived
+                   && health.scoreCardScore == 0.75
+                   && health.scoreCardReferenceVersion == "scoreRefVer"
+                   && health.scoreCardTimestamp == timestamp("1970-01-01T00:00:00.444Z")
                 """
                 .replace("__COMPONENT_UUID__", component.getUuid().toString())
                 .replace("__PROJECT_UUID__", project.getUuid().toString())
