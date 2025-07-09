@@ -22,59 +22,57 @@ package org.dependencytrack.policy.cel.mapping;
 import java.util.Date;
 
 public class HealthMetaProjection {
+    @MappedField(protoFieldName = "purl", sqlColumnName = "PURL")
     public String purl;
-
-    @MappedField(protoFieldName = "health_meta.stars", sqlColumnName = "STARS")
+    
+    @MappedField(protoFieldName = "stars", sqlColumnName = "STARS")
     public Integer stars;
 
-    @MappedField(protoFieldName = "health_meta.forks", sqlColumnName = "FORKS")
+    @MappedField(protoFieldName = "forks", sqlColumnName = "FORKS")
     public Integer forks;
 
-    @MappedField(protoFieldName = "health_meta.contributors", sqlColumnName = "CONTRIBUTORS")
+    @MappedField(protoFieldName = "contributors", sqlColumnName = "CONTRIBUTORS")
     public Integer contributors;
 
-    @MappedField(protoFieldName = "health_meta.commitFrequency", sqlColumnName = "COMMIT_FREQUENCY")
+    @MappedField(protoFieldName = "commitFrequency", sqlColumnName = "COMMIT_FREQUENCY")
     public Float commitFrequency;
 
-    @MappedField(protoFieldName = "health_meta.openIssues", sqlColumnName = "OPEN_ISSUES")
+    @MappedField(protoFieldName = "openIssues", sqlColumnName = "OPEN_ISSUES")
     public Integer openIssues;
 
-    @MappedField(protoFieldName = "health_meta.openPRs", sqlColumnName = "OPEN_PRS")
+    @MappedField(protoFieldName = "openPRs", sqlColumnName = "OPEN_PRS")
     public Integer openPRs;
 
-    @MappedField(protoFieldName = "health_meta.lastCommit", sqlColumnName = "LAST_COMMIT")
+    @MappedField(protoFieldName = "lastCommitDate", sqlColumnName = "LAST_COMMIT")
     public Date lastCommit;
 
-    @MappedField(protoFieldName = "health_meta.busFactor", sqlColumnName = "BUS_FACTOR")
+    @MappedField(protoFieldName = "busFactor", sqlColumnName = "BUS_FACTOR")
     public Integer busFactor;
 
-    @MappedField(protoFieldName = "health_meta.hasReadme", sqlColumnName = "HAS_README")
+    @MappedField(protoFieldName = "hasReadme", sqlColumnName = "HAS_README")
     public Boolean hasReadme;
 
-    @MappedField(protoFieldName = "health_meta.hasCodeOfConduct", sqlColumnName = "HAS_CODE_OF_CONDUCT")
+    @MappedField(protoFieldName = "hasCodeOfConduct", sqlColumnName = "HAS_CODE_OF_CONDUCT")
     public Boolean hasCodeOfConduct;
 
-    @MappedField(protoFieldName = "health_meta.hasSecurityPolicy", sqlColumnName = "HAS_SECURITY_POLICY")
+    @MappedField(protoFieldName = "hasSecurityPolicy", sqlColumnName = "HAS_SECURITY_POLICY")
     public Boolean hasSecurityPolicy;
 
-    @MappedField(protoFieldName = "health_meta.dependents", sqlColumnName = "DEPENDENTS")
+    @MappedField(protoFieldName = "dependents", sqlColumnName = "DEPENDENTS")
     public Integer dependents;
 
-    @MappedField(protoFieldName = "health_meta.files", sqlColumnName = "FILES")
+    @MappedField(protoFieldName = "files", sqlColumnName = "FILES")
     public Integer files;
 
-    @MappedField(protoFieldName = "health_meta.isRepoArchived", sqlColumnName = "IS_REPO_ARCHIVED")
+    @MappedField(protoFieldName = "isRepoArchived", sqlColumnName = "IS_REPO_ARCHIVED")
     public Boolean isRepoArchived;
 
-    @MappedField(protoFieldName = "health_meta.scorecardScore", sqlColumnName = "SCORECARD_SCORE")
+    @MappedField(protoFieldName = "scoreCardScore", sqlColumnName = "SCORECARD_SCORE")
     public Float scorecardScore;
 
-    @MappedField(protoFieldName = "health_meta.scorecardReferenceVersion", sqlColumnName = "SCORECARD_REF_VERSION")
+    @MappedField(protoFieldName = "scoreCardReferenceVersion", sqlColumnName = "SCORECARD_REF_VERSION")
     public String scorecardReferenceVersion;
 
-    @MappedField(protoFieldName = "health_meta.scorecardTimestamp", sqlColumnName = "SCORECARD_TIMESTAMP")
+    @MappedField(protoFieldName = "scoreCardTimestamp", sqlColumnName = "SCORECARD_TIMESTAMP")
     public Date scorecardTimestamp;
-
-    @MappedField(protoFieldName = "health_meta.lastFetch", sqlColumnName = "LAST_FETCH")
-    public Date lastFetch;
 }

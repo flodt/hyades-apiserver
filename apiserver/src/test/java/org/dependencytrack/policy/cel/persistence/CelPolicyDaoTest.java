@@ -30,6 +30,7 @@ import org.dependencytrack.model.Classifier;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Epss;
 import org.dependencytrack.model.FetchStatus;
+import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
 import org.dependencytrack.model.License;
 import org.dependencytrack.model.LicenseGroup;
@@ -40,12 +41,14 @@ import org.dependencytrack.model.VulnerabilityAlias;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.withJdbiHandle;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_COMPONENT;
+import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_HEALTH;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE_GROUP;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT;
@@ -318,4 +321,82 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
                         """);
     }
 
+    @Test
+    public void testLoadRequiredFieldsForHealthMeta() throws Exception {
+        final var project = new Project();
+        project.setName("projectName");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setName("Test");
+        component.setProject(project);
+        component.setPurl("componentPurl");
+        qm.persist(component);
+
+        final var healthMeta = new HealthMetaComponent();
+        healthMeta.setPurl("componentPurl");
+        healthMeta.setStars(123);
+        healthMeta.setForks(45);
+        healthMeta.setContributors(10);
+        healthMeta.setCommitFrequency(2.5f);
+        healthMeta.setOpenIssues(7);
+        healthMeta.setOpenPRs(3);
+        healthMeta.setLastCommitDate(Date.from(Instant.parse("2021-01-07T06:13:20Z")));
+        healthMeta.setBusFactor(5);
+        healthMeta.setHasReadme(true);
+        healthMeta.setHasCodeOfConduct(true);
+        healthMeta.setHasSecurityPolicy(false);
+        healthMeta.setDependents(12);
+        healthMeta.setFiles(34);
+        healthMeta.setRepoArchived(false);
+        healthMeta.setScorecardScore(8.6f);
+        healthMeta.setScorecardReferenceVersion("v1.2.3");
+        healthMeta.setScorecardTimestamp(Date.from(Instant.parse("2021-05-03T12:00:00Z")));
+        healthMeta.setStatus(FetchStatus.PROCESSED);
+        qm.persist(healthMeta);
+
+        // -- tell the DAO to load every field from the proto descriptor --
+        final var requirements = new HashSetValuedHashMap<Type, String>();
+        requirements.putAll(
+                TYPE_HEALTH,
+                org.dependencytrack.proto.policy.v1.HealthMeta.getDescriptor()
+                        .getFields().stream()
+                        .map(Descriptors.FieldDescriptor::getName)
+                        .toList()
+        );
+
+        final var protoHealthMeta = org.dependencytrack.proto.policy.v1.HealthMeta.newBuilder()
+                .setPurl("componentPurl")
+                .build();
+
+        final var enrichedHealthMeta = withJdbiHandle(handle ->
+                handle.attach(CelPolicyDao.class).loadRequiredFields(protoHealthMeta, requirements)
+        );
+
+        // -- verify every field made it into the enriched proto --
+        assertThatJson(JsonFormat.printer().print(enrichedHealthMeta))
+                .withMatcher("purl", equalTo("componentPurl"))
+                .isEqualTo("""
+            {
+              "stars": 123,
+              "forks": 45,
+              "contributors": 10,
+              "commitFrequency": 2.5,
+              "openIssues": 7,
+              "openPRs": 3,
+              "lastCommitDate": "2021-01-07T06:13:20Z",
+              "busFactor": 5,
+              "hasReadme": true,
+              "hasCodeOfConduct": true,
+              "hasSecurityPolicy": false,
+              "dependents": 12,
+              "files": 34,
+              "isRepoArchived": false,
+              "scoreCardScore": 8.6,
+              "scoreCardReferenceVersion": "v1.2.3",
+              "scoreCardTimestamp": "2021-05-03T12:00:00Z",
+              "purl": "componentPurl"
+            }
+            """);
+    }
 }

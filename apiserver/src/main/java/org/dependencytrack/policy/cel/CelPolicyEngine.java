@@ -58,9 +58,11 @@ import org.dependencytrack.policy.cel.compat.VersionCelPolicyScriptSourceBuilder
 import org.dependencytrack.policy.cel.compat.VersionDistanceCelScriptBuilder;
 import org.dependencytrack.policy.cel.compat.VulnerabilityIdCelPolicyScriptSourceBuilder;
 import org.dependencytrack.policy.cel.mapping.ComponentProjection;
+import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.policy.cel.mapping.LicenseProjection;
 import org.dependencytrack.policy.cel.mapping.VulnerabilityProjection;
 import org.dependencytrack.policy.cel.persistence.CelPolicyDao;
+import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.dependencytrack.util.NotificationUtil;
 import org.dependencytrack.util.VulnerabilityUtil;
@@ -89,6 +91,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.dependencytrack.common.MdcKeys.MDC_PROJECT_UUID;
 import static org.dependencytrack.persistence.jdbi.JdbiFactory.withJdbiHandle;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_COMPONENT;
+import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_HEALTH;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE_GROUP;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT;
@@ -173,8 +176,12 @@ public class CelPolicyEngine {
             } else {
                 protoProject = org.dependencytrack.proto.policy.v1.Project.getDefaultInstance();
             }
-            // Preload components for the entire project, to avoid excessive queries.
+            // Preload components and health metadata for the entire project, to avoid excessive queries.
             final List<ComponentProjection> components = celQm.fetchAllComponents(project.getId(), requirements.get(TYPE_COMPONENT));
+            final List<HealthMetaProjection> healthMetas = celQm.fetchAllComponentHealthMeta(
+                    components.stream().map(cp -> cp.purl).toList(),
+                    requirements.get(TYPE_HEALTH)
+            );
 
             // Preload licenses for the entire project, as chances are high that they will be used by multiple components.
             final Map<Long, org.dependencytrack.proto.policy.v1.License> licenseById;
@@ -218,11 +225,19 @@ public class CelPolicyEngine {
                                 .map(protoVulnById::get)
                                 .toList();
 
+                HealthMetaProjection healthMeta = healthMetas.stream()
+                        .filter(hmp -> Objects.equals(hmp.purl, component.purl))
+                        .findFirst()
+                        .orElse(new HealthMetaProjection());
+
+                final org.dependencytrack.proto.policy.v1.HealthMeta protoHealth = mapToProto(healthMeta);
+
                 conditionsViolated.putAll(component.id, evaluateConditions(conditionScriptPairs, Map.of(
                         CelPolicyVariable.COMPONENT.variableName(), protoComponent,
                         CelPolicyVariable.PROJECT.variableName(), protoProject,
                         CelPolicyVariable.VULNS.variableName(), protoVulns,
-                        CelPolicyVariable.NOW.variableName(), protoNow
+                        CelPolicyVariable.NOW.variableName(), protoNow,
+                        CelPolicyVariable.HEALTH.variableName(), protoHealth
                 )));
             }
 
@@ -396,6 +411,34 @@ public class CelPolicyEngine {
                 })
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    private static org.dependencytrack.proto.policy.v1.HealthMeta mapToProto(final HealthMetaProjection projection) {
+        HealthMeta.Builder builder = HealthMeta.newBuilder();
+
+        Optional.ofNullable(projection.stars).ifPresent(builder::setStars);
+        Optional.ofNullable(projection.forks).ifPresent(builder::setForks);
+        Optional.ofNullable(projection.contributors).ifPresent(builder::setContributors);
+        Optional.ofNullable(projection.commitFrequency).ifPresent(builder::setCommitFrequency);
+        Optional.ofNullable(projection.openIssues).ifPresent(builder::setOpenIssues);
+        Optional.ofNullable(projection.openPRs).ifPresent(builder::setOpenPRs);
+        Optional.ofNullable(projection.lastCommit)
+                .map(Timestamps::fromDate)
+                .ifPresent(builder::setLastCommitDate);
+        Optional.ofNullable(projection.busFactor).ifPresent(builder::setBusFactor);
+        Optional.ofNullable(projection.hasReadme).ifPresent(builder::setHasReadme);
+        Optional.ofNullable(projection.hasCodeOfConduct).ifPresent(builder::setHasCodeOfConduct);
+        Optional.ofNullable(projection.hasSecurityPolicy).ifPresent(builder::setHasSecurityPolicy);
+        Optional.ofNullable(projection.dependents).ifPresent(builder::setDependents);
+        Optional.ofNullable(projection.files).ifPresent(builder::setFiles);
+        Optional.ofNullable(projection.isRepoArchived).ifPresent(builder::setIsRepoArchived);
+        Optional.ofNullable(projection.scorecardScore).ifPresent(builder::setScoreCardScore);
+        Optional.ofNullable(projection.scorecardReferenceVersion).ifPresent(builder::setScoreCardReferenceVersion);
+        Optional.ofNullable(projection.scorecardTimestamp)
+                .map(Timestamps::fromDate)
+                .ifPresent(builder::setScoreCardTimestamp);
+
+        return builder.build();
     }
 
     private static org.dependencytrack.proto.policy.v1.Component mapToProto(final ComponentProjection projection,

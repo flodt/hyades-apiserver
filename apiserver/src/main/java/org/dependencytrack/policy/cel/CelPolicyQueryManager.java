@@ -22,7 +22,6 @@ import alpine.common.logging.Logger;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.dependencytrack.model.Component;
-import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.Policy;
 import org.dependencytrack.model.PolicyViolation;
 import org.dependencytrack.model.Project;
@@ -30,6 +29,7 @@ import org.dependencytrack.model.Tag;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.policy.cel.mapping.ComponentProjection;
 import org.dependencytrack.policy.cel.mapping.ComponentsVulnerabilitiesProjection;
+import org.dependencytrack.policy.cel.mapping.FieldMapping;
 import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.policy.cel.mapping.LicenseGroupProjection;
 import org.dependencytrack.policy.cel.mapping.LicenseProjection;
@@ -186,52 +186,39 @@ class CelPolicyQueryManager implements AutoCloseable {
                 "shouldJoinIntegrityMeta", protoFieldNames.contains("publishedAt") || protoFieldNames.contains("published_at"),
                 "shouldJoinRepoMeta", protoFieldNames.contains("latestVersion") || protoFieldNames.contains("latest_version"),
                 "projectId", projectId));
-
-        List<ComponentProjection> componentProjections = List.copyOf(query.executeResultList(ComponentProjection.class));
-        query.closeAll();
-
-        // now retrieve health metadata if it is necessary
-        componentProjections = enrichWithHealthMetaIfNeeded(protoFieldNames, componentProjections);
-
-        return componentProjections;
+        try {
+            return List.copyOf(query.executeResultList(ComponentProjection.class));
+        } finally {
+            query.closeAll();
+        }
     }
 
-    List<ComponentProjection> enrichWithHealthMetaIfNeeded(final Collection<String> protoFieldNames, final List<ComponentProjection> components) {
-        // find all purls for which we need to query (to avoid the N+1 query problem)
-        List<String> purls = components.stream()
-                .map(cp -> cp.purl)
-                .distinct()
-                .toList();
-
-        String sqlSelectColumns = getFieldMappings(HealthMetaComponent.class).stream()
-                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
+    List<HealthMetaProjection> fetchAllComponentHealthMeta(final List<String> purls, final Collection<String> protoFieldNames) {
+        String sqlSelectColumns = Stream.concat(
+                        // always want the purl in the projection
+                        Stream.of(new FieldMapping("purl", "purl", "PURL")),
+                        getFieldMappings(HealthMetaProjection.class).stream()
+                                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
+                )
                 .map(mapping -> "\"HMC\".\"%s\" AS \"%s\"".formatted(mapping.sqlColumnName(), mapping.javaFieldName()))
                 .collect(Collectors.joining(", "));
 
         // early exit if we don't need anything, no need to query the DB in that case
-        if (purls.isEmpty()) return components;
-        if (sqlSelectColumns.isEmpty()) return components;
+        if (purls.isEmpty()) return List.of();
 
         String sql = """
                 SELECT %s
                 FROM "HEALTH_META_COMPONENT" "HMC"
-                WHERE "HMC"."PURL" IN (:purls)
+                WHERE "HMC"."PURL" = ANY(:purls)
                 """.formatted(sqlSelectColumns);
 
         final Query<?> query = pm.newQuery(Query.SQL, sql);
-        query.setNamedParameters(Map.of("purls", purls));
+        query.setNamedParameters(Map.of("purls", purls.toArray(new String[0])));
 
         List<HealthMetaProjection> healthMetaProjections = List.copyOf(query.executeResultList(HealthMetaProjection.class));
         query.closeAll();
 
-        Map<String, HealthMetaProjection> metaByPurl = healthMetaProjections.stream()
-                .collect(Collectors.toMap(hm -> hm.purl, hm -> hm));
-
-        for (ComponentProjection component : components) {
-            component.healthMeta = metaByPurl.get(component.purl);
-        }
-
-        return components;
+        return healthMetaProjections;
     }
 
     /**

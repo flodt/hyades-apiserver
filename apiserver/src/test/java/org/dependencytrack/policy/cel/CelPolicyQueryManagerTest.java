@@ -25,8 +25,8 @@ import org.dependencytrack.model.FetchStatus;
 import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.policy.cel.mapping.ComponentProjection;
+import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -52,38 +52,64 @@ public class CelPolicyQueryManagerTest extends PersistenceCapableTest {
         component.setProject(project);
         component.setName("ABC");
         component.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
-        component = qm.createComponent(component, false);
-
-        HealthMetaComponent healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(component.getPurl().toString());
-        healthMeta.setStatus(FetchStatus.PROCESSED);
-        healthMeta.setScorecardScore(10.0f);
-        healthMeta.setStars(39);
-        healthMeta.setForks(12);
-        qm.createHealthMetaComponent(healthMeta);
+        qm.createComponent(component, false);
 
         Collection<String> protoFieldNames = List.of("name", "purl", "health_meta.scorecardScore", "health_meta.stars", "health_meta.forks");
 
         List<ComponentProjection> componentProjections = celQm.fetchAllComponents(project.getId(), protoFieldNames);
 
         assertThat(componentProjections).hasSize(1);
-        assertThat(componentProjections).extracting(cp -> cp.healthMeta).doesNotContainNull();
 
         assertThat(componentProjections)
                 .extracting(
                         cp -> cp.name,
-                        cp -> cp.purl,
-                        cp -> cp.healthMeta.scorecardScore,
-                        cp -> cp.healthMeta.stars,
-                        cp -> cp.healthMeta.forks
+                        cp -> cp.purl
                 )
                 .containsExactly(
                         tuple(
                                 "ABC",
+                                "pkg:maven/org.http4s/blaze-core_2.12"
+                        )
+                );
+    }
+
+    @Test
+    public void testFetchesHealthProjection() {
+        Project project = qm.createProject("Acme Application", null, null, null, null, null, null, false);
+
+        Component component = new Component();
+        component.setProject(project);
+        component.setName("ABC");
+        component.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        qm.createComponent(component, false);
+
+        HealthMetaComponent healthMetaComponent = new HealthMetaComponent();
+        healthMetaComponent.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        healthMetaComponent.setStatus(FetchStatus.PROCESSED);
+        healthMetaComponent.setStars(42);
+        healthMetaComponent.setScorecardScore(10.0f);
+        healthMetaComponent.setForks(10);
+        qm.createHealthMetaComponent(healthMetaComponent);
+
+        Collection<String> protoFieldNames = List.of("scoreCardScore", "stars", "forks");
+
+        List<HealthMetaProjection> healthMetaProjections = celQm.fetchAllComponentHealthMeta(List.of("pkg:maven/org.http4s/blaze-core_2.12"), protoFieldNames);
+
+        assertThat(healthMetaProjections).hasSize(1);
+
+        assertThat(healthMetaProjections)
+                .extracting(
+                        hp -> hp.purl,
+                        hp -> hp.stars,
+                        hp -> hp.scorecardScore,
+                        hp -> hp.forks
+                )
+                .containsExactly(
+                        tuple(
                                 "pkg:maven/org.http4s/blaze-core_2.12",
+                                42,
                                 10.0f,
-                                39,
-                                12
+                                10
                         )
                 );
     }

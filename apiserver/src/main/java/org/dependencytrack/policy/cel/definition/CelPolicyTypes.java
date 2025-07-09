@@ -20,6 +20,7 @@ package org.dependencytrack.policy.cel.definition;
 
 import com.google.api.expr.v1alpha1.Type;
 import org.dependencytrack.proto.policy.v1.Component;
+import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Project;
 import org.dependencytrack.proto.policy.v1.Tools;
@@ -40,5 +41,5 @@ public class CelPolicyTypes {
     public static final Type TYPE_VULNERABILITIES = Decls.newListType(TYPE_VULNERABILITY);
     public static final Type TYPE_VULNERABILITY_ALIAS = Decls.newObjectType(Vulnerability.Alias.getDescriptor().getFullName());
     public static final Type TYPE_VERSION_DISTANCE = Decls.newObjectType(VersionDistance.getDescriptor().getFullName());
-
+    public static final Type TYPE_HEALTH = Decls.newObjectType(HealthMeta.getDescriptor().getFullName());
 }

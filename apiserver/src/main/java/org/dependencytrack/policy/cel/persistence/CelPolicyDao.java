@@ -25,10 +25,12 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.dependencytrack.policy.cel.mapping.ComponentProjection;
+import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.policy.cel.mapping.ProjectProjection;
 import org.dependencytrack.policy.cel.mapping.ProjectPropertyProjection;
 import org.dependencytrack.policy.cel.mapping.VulnerabilityProjection;
 import org.dependencytrack.proto.policy.v1.Component;
+import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.Project;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.jdbi.v3.sqlobject.config.RegisterRowMapper;
@@ -45,6 +47,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_COMPONENT;
+import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_HEALTH;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT_METADATA;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT_PROPERTY;
@@ -128,6 +131,17 @@ public interface CelPolicyDao {
     Component getComponent(@Define List<String> fetchColumns, UUID uuid);
 
     @SqlQuery("""
+            SELECT
+              ${fetchColumns?join(", ")}
+            FROM
+              "HEALTH_META_COMPONENT" AS "HMC"
+            WHERE
+              "HMC"."PURL" = :purl
+            """)
+    @RegisterRowMapper(CelPolicyHealthMetaRowMapper.class)
+    HealthMeta getHealthMeta(@Define List<String> fetchColumns, String purl);
+
+    @SqlQuery("""
             SELECT DISTINCT
               ${fetchColumns?join(", ")}
             FROM
@@ -186,7 +200,7 @@ public interface CelPolicyDao {
                 .collect(Collectors.toList());
 
         if (fieldsToLoad.contains("metadata")
-            && requirements.containsKey(TYPE_PROJECT_METADATA)) {
+                && requirements.containsKey(TYPE_PROJECT_METADATA)) {
             if (requirements.get(TYPE_PROJECT_METADATA).contains("tools")) {
                 sqlSelectColumns.add("\"PM\".\"TOOLS\" AS \"metadata_tools\"");
             }
@@ -250,6 +264,32 @@ public interface CelPolicyDao {
         }
 
         return component.toBuilder().mergeFrom(fetchedComponent).build();
+    }
+
+    default HealthMeta loadRequiredFields(final HealthMeta healthMeta, final MultiValuedMap<Type, String> requirements) {
+        final Collection<String> healthRequirements = requirements.get(TYPE_HEALTH);
+        if (healthRequirements == null || healthRequirements.isEmpty()) {
+            return healthMeta;
+        }
+
+        final Set<String> fieldsToLoad = determineFieldsToLoad(HealthMeta.getDescriptor(), healthMeta, healthRequirements);
+        if (fieldsToLoad.isEmpty()) {
+            LOGGER.debug("All required fields are already loaded for message of type %s"
+                    .formatted(HealthMeta.getDescriptor().getFullName()));
+            return healthMeta;
+        }
+
+        final List<String> sqlSelectColumns = getFieldMappings(HealthMetaProjection.class).stream()
+                .filter(fieldMapping -> fieldsToLoad.contains(fieldMapping.protoFieldName()))
+                .map(fieldMapping -> "\"HMC\".\"%s\" AS \"%s\"".formatted(fieldMapping.sqlColumnName(), fieldMapping.protoFieldName()))
+                .collect(Collectors.toList());
+
+        final HealthMeta fetchedHealthMeta = getHealthMeta(sqlSelectColumns, healthMeta.getPurl());
+        if (fetchedHealthMeta == null) {
+            throw new NoSuchElementException();
+        }
+
+        return healthMeta.toBuilder().mergeFrom(fetchedHealthMeta).build();
     }
 
     default Vulnerability loadRequiredFields(final Vulnerability vuln, final MultiValuedMap<Type, String> requirements) {

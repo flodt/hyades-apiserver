@@ -99,6 +99,4 @@ public class ComponentProjection {
 
     @MappedField(protoFieldName = "license_expression", sqlColumnName = "LICENSE_EXPRESSION")
     public String licenseExpression;
-
-    public HealthMetaProjection healthMeta;
 }

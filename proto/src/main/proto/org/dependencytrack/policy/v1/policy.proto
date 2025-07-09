@@ -66,8 +66,6 @@ message Component {
   // When the component current version last modified.
   optional google.protobuf.Timestamp published_at = 53;
   optional string latest_version = 54;
-
-  optional HealthMeta health_meta = 60;
 }
 
 message HealthMeta {
@@ -89,6 +87,7 @@ message HealthMeta {
   optional float scoreCardScore = 16;
   optional string scoreCardReferenceVersion = 17;
   optional google.protobuf.Timestamp scoreCardTimestamp = 18;
+  optional string purl = 19;
 }
 
 message License {
