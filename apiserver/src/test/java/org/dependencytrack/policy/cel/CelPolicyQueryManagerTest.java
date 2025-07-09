@@ -26,6 +26,7 @@ import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.policy.cel.mapping.ComponentProjection;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -61,26 +62,28 @@ public class CelPolicyQueryManagerTest extends PersistenceCapableTest {
         healthMeta.setForks(12);
         qm.createHealthMetaComponent(healthMeta);
 
-        Collection<String> protoFieldNames = List.of("name", "purl", "scorecardScore", "stars", "forks");
+        Collection<String> protoFieldNames = List.of("name", "purl", "health_meta.scorecardScore", "health_meta.stars", "health_meta.forks");
 
         List<ComponentProjection> componentProjections = celQm.fetchAllComponents(project.getId(), protoFieldNames);
 
+        assertThat(componentProjections).hasSize(1);
+        assertThat(componentProjections).extracting(cp -> cp.healthMeta).doesNotContainNull();
+
         assertThat(componentProjections)
-                .hasSize(1)
                 .extracting(
                         cp -> cp.name,
-                        cp -> cp.purl//,
-                        //cp -> cp.scorecardScore,
-                        //cp -> cp.stars,
-                        //cp -> cp.forks
+                        cp -> cp.purl,
+                        cp -> cp.healthMeta.scorecardScore,
+                        cp -> cp.healthMeta.stars,
+                        cp -> cp.healthMeta.forks
                 )
                 .containsExactly(
                         tuple(
                                 "ABC",
-                                "pkg:maven/org.http4s/blaze-core_2.12"//,
-                                //10.0f,
-                                //39,
-                                //12
+                                "pkg:maven/org.http4s/blaze-core_2.12",
+                                10.0f,
+                                39,
+                                12
                         )
                 );
     }

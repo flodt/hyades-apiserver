@@ -86,6 +86,7 @@ public class ComponentProjection {
 
     @MappedField(sqlColumnName = "BLAKE3")
     public String blake3;
+
     @MappedField(protoFieldName = "resolved_license", sqlColumnName = "LICENSE_ID")
     public Long resolvedLicenseId;
 
@@ -95,7 +96,9 @@ public class ComponentProjection {
     public Date publishedAt;
 
     public String latestVersion;
+
     @MappedField(protoFieldName = "license_expression", sqlColumnName = "LICENSE_EXPRESSION")
     public String licenseExpression;
 
+    public HealthMetaProjection healthMeta;
 }

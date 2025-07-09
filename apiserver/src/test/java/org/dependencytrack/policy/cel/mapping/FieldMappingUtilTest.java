@@ -21,6 +21,7 @@ package org.dependencytrack.policy.cel.mapping;
 import com.google.protobuf.Descriptors.Descriptor;
 import org.dependencytrack.PersistenceCapableTest;
 import org.dependencytrack.proto.policy.v1.Component;
+import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.License;
 import org.dependencytrack.proto.policy.v1.Project;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
@@ -39,6 +40,11 @@ public class FieldMappingUtilTest extends PersistenceCapableTest {
     @Test
     public void testGetFieldMappingsForComponentProjection() {
         assertValidProtoFieldsAndColumns(ComponentProjection.class, Component.getDescriptor(), org.dependencytrack.model.Component.class);
+    }
+
+    @Test
+    public void testGetFieldMappingsForHealthMetaProjection() {
+        assertValidProtoFieldsAndColumns(HealthMetaProjection.class, HealthMeta.getDescriptor(), org.dependencytrack.model.HealthMetaComponent.class);
     }
 
     @Test
