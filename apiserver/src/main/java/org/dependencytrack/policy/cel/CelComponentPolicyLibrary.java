@@ -34,7 +34,8 @@ class CelComponentPolicyLibrary implements Library {
                         CelPolicyVariable.COMPONENT.declaration(),
                         CelPolicyVariable.PROJECT.declaration(),
                         CelPolicyVariable.VULNS.declaration(),
-                        CelPolicyVariable.NOW.declaration()
+                        CelPolicyVariable.NOW.declaration(),
+                        CelPolicyVariable.HEALTH.declaration()
                 )
         );
     }

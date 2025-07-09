@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_COMPONENT;
+import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_HEALTH;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE_GROUP;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT;
@@ -74,10 +75,11 @@ public class CelPolicyScriptHostTest {
                 component.resolved_license.groups.exists(licenseGroup, licenseGroup.name == "Permissive")
                   && vulns.exists(vuln, vuln.severity in ["HIGH", "CRITICAL"] && has(vuln.aliases))
                   && project.depends_on(v1.Component{name: "foo"})
+                  && health.stars == 10
                 """, CacheMode.NO_CACHE);
 
         final Map<Type, Collection<String>> requirements = compiledScript.getRequirements().asMap();
-        assertThat(requirements).containsOnlyKeys(TYPE_COMPONENT, TYPE_LICENSE, TYPE_LICENSE_GROUP, TYPE_PROJECT, TYPE_VULNERABILITY);
+        assertThat(requirements).containsOnlyKeys(TYPE_COMPONENT, TYPE_LICENSE, TYPE_LICENSE_GROUP, TYPE_PROJECT, TYPE_VULNERABILITY, TYPE_HEALTH);
 
         assertThat(requirements.get(TYPE_COMPONENT)).containsOnly("resolved_license");
         assertThat(requirements.get(TYPE_LICENSE)).containsOnly("groups");
@@ -92,6 +94,7 @@ public class CelPolicyScriptHostTest {
                 "owasp_rr_technical_impact_score",
                 "owasp_rr_business_impact_score",
                 "severity");
+        assertThat(requirements.get(TYPE_HEALTH)).containsOnly("stars");
     }
 
     @Test
