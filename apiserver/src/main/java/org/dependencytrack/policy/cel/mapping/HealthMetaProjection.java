@@ -78,4 +78,7 @@ public class HealthMetaProjection {
 
     @MappedField(protoFieldName = "avgIssueAgeDays", sqlColumnName = "AVG_ISSUE_AGE_DAYS")
     public Float avgIssueAgeDays;
+
+    @MappedField(sqlColumnName = "SCORECARD_CHECKS_JSON")
+    public String scoreCardChecksJson;
 }

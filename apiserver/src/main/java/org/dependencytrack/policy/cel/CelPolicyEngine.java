@@ -24,8 +24,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.expr.v1alpha1.Type;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.Timestamps;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -63,6 +65,7 @@ import org.dependencytrack.policy.cel.mapping.LicenseProjection;
 import org.dependencytrack.policy.cel.mapping.VulnerabilityProjection;
 import org.dependencytrack.policy.cel.persistence.CelPolicyDao;
 import org.dependencytrack.proto.policy.v1.HealthMeta;
+import org.dependencytrack.proto.policy.v1.ScoreCardCheck;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.dependencytrack.util.NotificationUtil;
 import org.dependencytrack.util.VulnerabilityUtil;
@@ -413,6 +416,53 @@ public class CelPolicyEngine {
                 .toList();
     }
 
+    private static ScoreCardCheck scoreCardChecksJsonToProto(String json) {
+        try {
+            ObjectMapper M = new ObjectMapper();
+            JsonNode array = M.readTree(json);
+            ObjectNode flat = M.createObjectNode();
+
+            Map<String, String> nameToField = Map.ofEntries(
+                    Map.entry("Packaging", "packaging"),
+                    Map.entry("Token-Permissions", "tokenPermissions"),
+                    Map.entry("Code-Review", "codeReview"),
+                    Map.entry("Pinned-Dependencies", "pinnedDependencies"),
+                    Map.entry("Binary-Artifacts", "binaryArtifacts"),
+                    Map.entry("Dangerous-Workflow", "dangerousWorkflow"),
+                    Map.entry("Maintained", "maintained"),
+                    Map.entry("CII-Best-Practices", "ciiBestPractices"),
+                    Map.entry("Security-Policy", "securityPolicy"),
+                    Map.entry("Fuzzing", "fuzzing"),
+                    Map.entry("License", "license"),
+                    Map.entry("Signed-Releases", "signedReleases"),
+                    Map.entry("Branch-Protection", "branchProtection"),
+                    Map.entry("SAST", "sast"),
+                    Map.entry("Vulnerabilities", "vulnerabilities")
+            );
+
+            for (JsonNode item : array) {
+                String name = item.get("name").asText();
+                JsonNode scoreNode = item.get("score");
+                String field = nameToField.get(name);
+                if (field != null && scoreNode != null && !scoreNode.isNull()) {
+                    flat.set(field, scoreNode);
+                }
+            }
+
+            // now flat looks like {"packaging":-1,"codeReview":2,…}
+            ScoreCardCheck.Builder scb = ScoreCardCheck.newBuilder();
+
+            JsonFormat.parser()
+                    .ignoringUnknownFields()
+                    .merge(flat.toString(), scb);
+
+            return scb.build();
+        } catch (Exception e) {
+            return ScoreCardCheck.newBuilder().build();
+        }
+    }
+
+
     private static org.dependencytrack.proto.policy.v1.HealthMeta mapToProto(final HealthMetaProjection projection) {
         HealthMeta.Builder builder = HealthMeta.newBuilder();
 
@@ -438,6 +488,9 @@ public class CelPolicyEngine {
                 .map(Timestamps::fromDate)
                 .ifPresent(builder::setScoreCardTimestamp);
         Optional.ofNullable(projection.avgIssueAgeDays).ifPresent(builder::setAvgIssueAgeDays);
+        Optional.ofNullable(projection.scoreCardChecksJson)
+                .map(CelPolicyEngine::scoreCardChecksJsonToProto)
+                .ifPresent(builder::setScoreCardChecks);
 
         return builder.build();
     }

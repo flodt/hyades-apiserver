@@ -419,7 +419,8 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
                    && health.scoreCardScore == 0.75
                    && health.scoreCardReferenceVersion == "scoreRefVer"
                    && health.scoreCardTimestamp == timestamp("1970-01-01T00:00:00.444Z")
-                """
+                   && health.scoreCardChecks.maintained == 4.5
+                """ // TODO: add others here
                 .replace("__COMPONENT_UUID__", component.getUuid().toString())
                 .replace("__PROJECT_UUID__", project.getUuid().toString())
                 .replace("__RESOLVED_LICENSE_UUID__", license.getUuid().toString())

@@ -83,12 +83,30 @@ message HealthMeta {
   optional int32 dependents = 12;
   optional int32 files = 13;
   optional bool isRepoArchived = 14;
-  // individual scoreCardChecks not included here (= 15)
+  optional ScoreCardCheck scoreCardChecks = 15;
   optional float scoreCardScore = 16;
   optional string scoreCardReferenceVersion = 17;
   optional google.protobuf.Timestamp scoreCardTimestamp = 18;
   optional string purl = 19;
   optional float avgIssueAgeDays = 20;
+}
+
+message ScoreCardCheck {
+  optional float packaging = 1;
+  optional float tokenPermissions = 2;
+  optional float codeReview = 3;
+  optional float pinnedDependencies = 4;
+  optional float binaryArtifacts = 5;
+  optional float dangerousWorkflow = 6;
+  optional float maintained = 7;
+  optional float ciiBestPractices = 8;
+  optional float securityPolicy = 9;
+  optional float fuzzing = 10;
+  optional float license = 11;
+  optional float signedReleases = 12;
+  optional float branchProtection = 13;
+  optional float sast = 14;
+  optional float vulnerabilities = 15;
 }
 
 message License {
