@@ -34,8 +34,8 @@ public class HealthMetaProjection {
     @MappedField(protoFieldName = "contributors", sqlColumnName = "CONTRIBUTORS")
     public Integer contributors;
 
-    @MappedField(protoFieldName = "commitFrequency", sqlColumnName = "COMMIT_FREQUENCY")
-    public Float commitFrequency;
+    @MappedField(protoFieldName = "commitFrequencyWeekly", sqlColumnName = "COMMIT_FREQUENCY_WEEKLY")
+    public Float commitFrequencyWeekly;
 
     @MappedField(protoFieldName = "openIssues", sqlColumnName = "OPEN_ISSUES")
     public Integer openIssues;
@@ -75,4 +75,7 @@ public class HealthMetaProjection {
 
     @MappedField(protoFieldName = "scoreCardTimestamp", sqlColumnName = "SCORECARD_TIMESTAMP")
     public Date scorecardTimestamp;
+
+    @MappedField(protoFieldName = "avgIssueAgeDays", sqlColumnName = "AVG_ISSUE_AGE_DAYS")
+    public Float avgIssueAgeDays;
 }

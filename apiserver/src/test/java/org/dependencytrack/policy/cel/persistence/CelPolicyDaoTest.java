@@ -338,10 +338,10 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
         healthMeta.setStars(123);
         healthMeta.setForks(45);
         healthMeta.setContributors(10);
-        healthMeta.setCommitFrequency(2.5f);
+        healthMeta.setCommitFrequencyWeekly(2.5f);
         healthMeta.setOpenIssues(7);
         healthMeta.setOpenPRs(3);
-        healthMeta.setLastCommitDate(Date.from(Instant.parse("2021-01-07T06:13:20Z")));
+        healthMeta.setLastCommit(Date.from(Instant.parse("2021-01-07T06:13:20Z")));
         healthMeta.setBusFactor(5);
         healthMeta.setHasReadme(true);
         healthMeta.setHasCodeOfConduct(true);
@@ -352,6 +352,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
         healthMeta.setScorecardScore(8.6f);
         healthMeta.setScorecardReferenceVersion("v1.2.3");
         healthMeta.setScorecardTimestamp(Date.from(Instant.parse("2021-05-03T12:00:00Z")));
+        healthMeta.setAvgIssueAgeDays(987.6f);
         healthMeta.setStatus(FetchStatus.PROCESSED);
         qm.persist(healthMeta);
 
@@ -381,7 +382,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
               "stars": 123,
               "forks": 45,
               "contributors": 10,
-              "commitFrequency": 2.5,
+              "commitFrequencyWeekly": 2.5,
               "openIssues": 7,
               "openPRs": 3,
               "lastCommitDate": "2021-01-07T06:13:20Z",
@@ -395,7 +396,8 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
               "scoreCardScore": 8.6,
               "scoreCardReferenceVersion": "v1.2.3",
               "scoreCardTimestamp": "2021-05-03T12:00:00Z",
-              "purl": "componentPurl"
+              "purl": "componentPurl",
+              "avgIssueAgeDays": 987.6
             }
             """);
     }

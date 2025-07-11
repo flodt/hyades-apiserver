@@ -730,7 +730,7 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
                         .setStars(42)
                         .setForks(10)
                         .setContributors(5)
-                        .setCommitFrequency(3.14f)
+                        .setCommitFrequencyWeekly(3.14f)
                         .setOpenIssues(7)
                         .setOpenPRs(2)
                         .setLastCommitDate(lastCommitTs)
@@ -743,7 +743,8 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
                         .setIsRepoArchived(true)
                         .setScoreCardScore(9.8f)
                         .setScoreCardReferenceVersion("v1.2.3")
-                        .setScoreCardTimestamp(scorecardTs))
+                        .setScoreCardTimestamp(scorecardTs)
+                        .setAvgIssueAgeDays(789.0f))
                 .build();
 
         var processor = new RepositoryMetaResultProcessor();
@@ -755,7 +756,7 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(h.getStars()).isEqualTo(42);
         assertThat(h.getForks()).isEqualTo(10);
         assertThat(h.getContributors()).isEqualTo(5);
-        assertThat(h.getCommitFrequency()).isEqualTo(3.14f);
+        assertThat(h.getCommitFrequencyWeekly()).isEqualTo(3.14f);
         assertThat(h.getOpenIssues()).isEqualTo(7);
         assertThat(h.getOpenPRs()).isEqualTo(2);
         assertThat(h.getBusFactor()).isEqualTo(1);
@@ -769,6 +770,7 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(h.getLastCommit()).isEqualTo(ProtoUtil.convertToDate(lastCommitTs));
         assertThat(h.getScorecardTimestamp()).isEqualTo(ProtoUtil.convertToDate(scorecardTs));
         assertThat(h.getScorecardReferenceVersion()).isEqualTo("v1.2.3");
+        assertThat(h.getAvgIssueAgeDays()).isEqualTo(789.0f);
         assertThat(h.getStatus()).isEqualTo(FetchStatus.PROCESSED);
     }
 

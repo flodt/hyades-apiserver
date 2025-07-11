@@ -76,8 +76,8 @@ public class HealthMetaComponent implements Serializable {
     private Integer contributors;
 
     @Persistent
-    @Column(name = "COMMIT_FREQUENCY")
-    private Float commitFrequency;
+    @Column(name = "COMMIT_FREQUENCY_WEEKLY")
+    private Float commitFrequencyWeekly;
 
     @Persistent
     @Column(name = "OPEN_ISSUES")
@@ -146,6 +146,10 @@ public class HealthMetaComponent implements Serializable {
     @Column(name = "STATUS", allowsNull = "false")
     private FetchStatus status;
 
+    @Persistent
+    @Column(name = "AVG_ISSUE_AGE_DAYS")
+    private Float avgIssueAgeDays;
+
     public long getId() {
         return id;
     }
@@ -189,13 +193,13 @@ public class HealthMetaComponent implements Serializable {
         this.contributors = contributors;
     }
 
-    @Schema(description = "Commit frequency in component's source code repository")
-    public Float getCommitFrequency() {
-        return commitFrequency;
+    @Schema(description = "Weekly commit frequency in component's source code repository")
+    public Float getCommitFrequencyWeekly() {
+        return commitFrequencyWeekly;
     }
 
-    public void setCommitFrequency(Float commitFrequency) {
-        this.commitFrequency = commitFrequency;
+    public void setCommitFrequencyWeekly(Float commitFrequencyWeekly) {
+        this.commitFrequencyWeekly = commitFrequencyWeekly;
     }
 
     @Schema(description = "Number of open issues of the component's source code repository")
@@ -221,7 +225,7 @@ public class HealthMetaComponent implements Serializable {
         return lastCommit;
     }
 
-    public void setLastCommitDate(Date lastCommit) {
+    public void setLastCommit(Date lastCommit) {
         this.lastCommit = lastCommit;
     }
 
@@ -339,5 +343,14 @@ public class HealthMetaComponent implements Serializable {
 
     public void setStatus(FetchStatus status) {
         this.status = status;
+    }
+
+    @Schema(description = "The average issue age in the source code repository in days")
+    public Float getAvgIssueAgeDays() {
+        return avgIssueAgeDays;
+    }
+
+    public void setAvgIssueAgeDays(Float avgIssueAgeDays) {
+        this.avgIssueAgeDays = avgIssueAgeDays;
     }
 }

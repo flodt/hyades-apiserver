@@ -19,7 +19,7 @@
             <column name="STARS" type="INT"/>
             <column name="FORKS" type="INT"/>
             <column name="CONTRIBUTORS" type="INT"/>
-            <column name="COMMIT_FREQUENCY" type="FLOAT"/>
+            <column name="COMMIT_FREQUENCY_WEEKLY" type="FLOAT"/>
             <column name="OPEN_ISSUES" type="INT"/>
             <column name="OPEN_PRS" type="INT"/>
             <column name="LAST_COMMIT" type="TIMESTAMP WITH TIME ZONE"/>
@@ -38,6 +38,7 @@
             <column name="STATUS" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="AVG_ISSUE_AGE_DAYS" type="FLOAT"/>
         </createTable>
 
         <createIndex tableName="HEALTH_META_COMPONENT"

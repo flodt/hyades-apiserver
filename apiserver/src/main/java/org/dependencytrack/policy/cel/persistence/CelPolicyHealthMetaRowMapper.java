@@ -37,7 +37,7 @@ public class CelPolicyHealthMetaRowMapper implements RowMapper<HealthMeta> {
         maybeSet(rs, "stars", ResultSet::getInt, builder::setStars);
         maybeSet(rs, "forks", ResultSet::getInt, builder::setForks);
         maybeSet(rs, "contributors", ResultSet::getInt, builder::setContributors);
-        maybeSet(rs, "commitFrequency", ResultSet::getFloat, builder::setCommitFrequency);
+        maybeSet(rs, "commitFrequencyWeekly", ResultSet::getFloat, builder::setCommitFrequencyWeekly);
         maybeSet(rs, "openIssues", ResultSet::getInt, builder::setOpenIssues);
         maybeSet(rs, "openPRs", ResultSet::getInt, builder::setOpenPRs);
         maybeSet(rs, "lastCommitDate", RowMapperUtil::nullableTimestamp, builder::setLastCommitDate);
@@ -51,6 +51,7 @@ public class CelPolicyHealthMetaRowMapper implements RowMapper<HealthMeta> {
         maybeSet(rs, "scoreCardScore", ResultSet::getFloat, builder::setScoreCardScore);
         maybeSet(rs, "scoreCardReferenceVersion", ResultSet::getString, builder::setScoreCardReferenceVersion);
         maybeSet(rs, "scoreCardTimestamp", RowMapperUtil::nullableTimestamp, builder::setScoreCardTimestamp);
+        maybeSet(rs, "avgIssueAgeDays", ResultSet::getFloat, builder::setAvgIssueAgeDays);
         return builder.build();
     }
 }

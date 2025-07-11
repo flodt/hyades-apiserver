@@ -44,7 +44,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.dependencytrack.event.kafka.componentmeta.integrity.IntegrityCheck.performIntegrityCheck;
@@ -111,12 +110,12 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         optionalIf(healthMeta.hasStars(), healthMeta.getStars()).ifPresent(persistentHealthMetaComponent::setStars);
         optionalIf(healthMeta.hasForks(), healthMeta.getForks()).ifPresent(persistentHealthMetaComponent::setForks);
         optionalIf(healthMeta.hasContributors(), healthMeta.getContributors()).ifPresent(persistentHealthMetaComponent::setContributors);
-        optionalIf(healthMeta.hasCommitFrequency(), healthMeta.getCommitFrequency()).ifPresent(persistentHealthMetaComponent::setCommitFrequency);
+        optionalIf(healthMeta.hasCommitFrequencyWeekly(), healthMeta.getCommitFrequencyWeekly()).ifPresent(persistentHealthMetaComponent::setCommitFrequencyWeekly);
         optionalIf(healthMeta.hasOpenIssues(), healthMeta.getOpenIssues()).ifPresent(persistentHealthMetaComponent::setOpenIssues);
         optionalIf(healthMeta.hasOpenPRs(), healthMeta.getOpenPRs()).ifPresent(persistentHealthMetaComponent::setOpenPRs);
         optionalIf(healthMeta.hasLastCommitDate(), healthMeta.getLastCommitDate())
                 .map(ProtoUtil::convertToDate)
-                .ifPresent(persistentHealthMetaComponent::setLastCommitDate);
+                .ifPresent(persistentHealthMetaComponent::setLastCommit);
         optionalIf(healthMeta.hasBusFactor(), healthMeta.getBusFactor()).ifPresent(persistentHealthMetaComponent::setBusFactor);
         optionalIf(healthMeta.hasHasReadme(), healthMeta.getHasReadme()).ifPresent(persistentHealthMetaComponent::setHasReadme);
         optionalIf(healthMeta.hasHasCodeOfConduct(), healthMeta.getHasCodeOfConduct()).ifPresent(persistentHealthMetaComponent::setHasCodeOfConduct);
@@ -130,6 +129,8 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         optionalIf(healthMeta.hasScoreCardTimestamp(), healthMeta.getScoreCardTimestamp())
                 .map(ProtoUtil::convertToDate)
                 .ifPresent(persistentHealthMetaComponent::setScorecardTimestamp);
+
+        optionalIf(healthMeta.hasAvgIssueAgeDays(), healthMeta.getAvgIssueAgeDays()).ifPresent(persistentHealthMetaComponent::setAvgIssueAgeDays);
 
         // Put Scorecard check results into JSON for serialization
         optionalIf(!healthMeta.getScoreCardChecksList().isEmpty(), healthMeta.getScoreCardChecksList())

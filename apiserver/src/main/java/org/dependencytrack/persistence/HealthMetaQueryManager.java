@@ -62,10 +62,10 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
             healthMeta.setStars(transientHealthMetaComponent.getStars());
             healthMeta.setForks(transientHealthMetaComponent.getForks());
             healthMeta.setContributors(transientHealthMetaComponent.getContributors());
-            healthMeta.setCommitFrequency(transientHealthMetaComponent.getCommitFrequency());
+            healthMeta.setCommitFrequencyWeekly(transientHealthMetaComponent.getCommitFrequencyWeekly());
             healthMeta.setOpenIssues(transientHealthMetaComponent.getOpenIssues());
             healthMeta.setOpenPRs(transientHealthMetaComponent.getOpenPRs());
-            healthMeta.setLastCommitDate(transientHealthMetaComponent.getLastCommit());
+            healthMeta.setLastCommit(transientHealthMetaComponent.getLastCommit());
             healthMeta.setBusFactor(transientHealthMetaComponent.getBusFactor());
             healthMeta.setHasReadme(transientHealthMetaComponent.getHasReadme());
             healthMeta.setHasCodeOfConduct(transientHealthMetaComponent.getHasCodeOfConduct());
@@ -79,6 +79,7 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
             healthMeta.setScorecardChecksJson(transientHealthMetaComponent.getScorecardChecksJson());
             healthMeta.setStatus(transientHealthMetaComponent.getStatus());
             healthMeta.setLastFetch(Date.from(Instant.now()));
+            healthMeta.setAvgIssueAgeDays(transientHealthMetaComponent.getAvgIssueAgeDays());
             return persist(healthMeta);
         } else {
             LOGGER.debug("No record found in HealthMetaComponent for purl " + transientHealthMetaComponent.getPurl());

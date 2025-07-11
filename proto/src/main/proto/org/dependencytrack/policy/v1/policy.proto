@@ -72,7 +72,7 @@ message HealthMeta {
   optional int32 stars = 1;
   optional int32 forks = 2;
   optional int32 contributors = 3;
-  optional float commitFrequency = 4;
+  optional float commitFrequencyWeekly = 4;
   optional int32 openIssues = 5;
   optional int32 openPRs = 6;
   optional google.protobuf.Timestamp lastCommitDate = 7;
@@ -88,6 +88,7 @@ message HealthMeta {
   optional string scoreCardReferenceVersion = 17;
   optional google.protobuf.Timestamp scoreCardTimestamp = 18;
   optional string purl = 19;
+  optional float avgIssueAgeDays = 20;
 }
 
 message License {

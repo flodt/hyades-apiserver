@@ -226,10 +226,10 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         healthMetaComponent.setStars(1);
         healthMetaComponent.setForks(2);
         healthMetaComponent.setContributors(3);
-        healthMetaComponent.setCommitFrequency(4.5f);
+        healthMetaComponent.setCommitFrequencyWeekly(4.5f);
         healthMetaComponent.setOpenIssues(5);
         healthMetaComponent.setOpenPRs(6);
-        healthMetaComponent.setLastCommitDate(new Date(333));
+        healthMetaComponent.setLastCommit(new Date(333));
         healthMetaComponent.setBusFactor(7);
         healthMetaComponent.setHasReadme(true);
         healthMetaComponent.setHasCodeOfConduct(true);
@@ -240,6 +240,7 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         healthMetaComponent.setScorecardScore(0.75f);
         healthMetaComponent.setScorecardReferenceVersion("scoreRefVer");
         healthMetaComponent.setScorecardTimestamp(new Date(444));
+        healthMetaComponent.setAvgIssueAgeDays(123.5f);
         qm.persist(healthMetaComponent);
 
         final var vuln = new Vulnerability();
@@ -403,7 +404,7 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
                    && health.stars == 1
                    && health.forks == 2
                    && health.contributors == 3
-                   && health.commitFrequency == 4.5
+                   && health.commitFrequencyWeekly == 4.5
                    && health.openIssues == 5
                    && health.openPRs == 6
                    && health.lastCommitDate == timestamp("1970-01-01T00:00:00.333Z")
@@ -414,6 +415,7 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
                    && health.dependents == 8
                    && health.files == 9
                    && !health.isRepoArchived
+                   && health.avgIssueAgeDays == 123.5
                    && health.scoreCardScore == 0.75
                    && health.scoreCardReferenceVersion == "scoreRefVer"
                    && health.scoreCardTimestamp == timestamp("1970-01-01T00:00:00.444Z")

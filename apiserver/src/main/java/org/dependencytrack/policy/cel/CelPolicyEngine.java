@@ -419,7 +419,7 @@ public class CelPolicyEngine {
         Optional.ofNullable(projection.stars).ifPresent(builder::setStars);
         Optional.ofNullable(projection.forks).ifPresent(builder::setForks);
         Optional.ofNullable(projection.contributors).ifPresent(builder::setContributors);
-        Optional.ofNullable(projection.commitFrequency).ifPresent(builder::setCommitFrequency);
+        Optional.ofNullable(projection.commitFrequencyWeekly).ifPresent(builder::setCommitFrequencyWeekly);
         Optional.ofNullable(projection.openIssues).ifPresent(builder::setOpenIssues);
         Optional.ofNullable(projection.openPRs).ifPresent(builder::setOpenPRs);
         Optional.ofNullable(projection.lastCommit)
@@ -437,6 +437,7 @@ public class CelPolicyEngine {
         Optional.ofNullable(projection.scorecardTimestamp)
                 .map(Timestamps::fromDate)
                 .ifPresent(builder::setScoreCardTimestamp);
+        Optional.ofNullable(projection.avgIssueAgeDays).ifPresent(builder::setAvgIssueAgeDays);
 
         return builder.build();
     }
