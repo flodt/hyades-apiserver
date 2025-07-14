@@ -157,6 +157,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
                         throw new RuntimeException(e);
                     }
                 })
+                .or(() -> Optional.of("[]"))
                 .ifPresent(persistentHealthMetaComponent::setScorecardChecksJson);
 
         persistentHealthMetaComponent.setStatus(FetchStatus.PROCESSED);
