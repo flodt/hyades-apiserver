@@ -50,6 +50,7 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.VulnerabilityAlias;
 import org.dependencytrack.persistence.DefaultObjectGenerator;
 import org.dependencytrack.plugin.PluginManager;
+import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.proto.storage.v1alpha1.FileMetadata;
 import org.dependencytrack.storage.FileStorage;
 import org.dependencytrack.tasks.BomUploadProcessingTask;
@@ -239,6 +240,7 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         healthMetaComponent.setRepoArchived(false);
         healthMetaComponent.setScorecardScore(0.75f);
         healthMetaComponent.setScorecardReferenceVersion("scoreRefVer");
+        healthMetaComponent.setScorecardChecksJson("[{\"name\":\"Packaging\",\"description\":\"This check tries to determine if the project is published as a package.\",\"score\":5,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging\"},{\"name\":\"Token-Permissions\",\"description\":\"This check determines whether the project's automated workflows tokens follow the principle of least privilege.\",\"score\":3,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions\"},{\"name\":\"Code-Review\",\"description\":\"This check determines whether the project requires human code review before pull requests (merge requests) are merged.\",\"score\":8,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review\"},{\"name\":\"Pinned-Dependencies\",\"description\":\"This check tries to determine if the project pins dependencies used during its build and release process.\",\"score\":6,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies\"},{\"name\":\"Binary-Artifacts\",\"description\":\"This check determines whether the project has generated executable (binary) artifacts in the source repository.\",\"score\":10,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#binary-artifacts\"},{\"name\":\"Dangerous-Workflow\",\"description\":\"This check determines whether the project's GitHub Action workflows has dangerous code patterns.\",\"score\":2,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#dangerous-workflow\"},{\"name\":\"Maintained\",\"description\":\"Determines if the project is \\\"actively maintained\\\".\",\"score\":7,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained\"},{\"name\":\"CII-Best-Practices\",\"description\":\"This check determines whether the project has earned an OpenSSF (formerly CII) Best Practices Badge.\",\"score\":4,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#cii-best-practices\"},{\"name\":\"Security-Policy\",\"description\":\"This check tries to determine if the project has published a security policy.\",\"score\":9,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#security-policy\"},{\"name\":\"Fuzzing\",\"description\":\"This check tries to determine if the project uses fuzzing tools, e.g. OSS-Fuzz.\",\"score\":1,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#fuzzing\"},{\"name\":\"License\",\"description\":\"This check determines whether the project has defined a license.\",\"score\":10,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#license\"},{\"name\":\"Signed-Releases\",\"description\":\"This check tries to determine if the project cryptographically signs release artifacts.\",\"score\":0,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases\"},{\"name\":\"Branch-Protection\",\"description\":\"This check determines whether a project's default and release branches are protected with GitHub's branch protection or repository rules settings.\",\"score\":5,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#branch-protection\"},{\"name\":\"SAST\",\"description\":\"This check tries to determine if the project uses Static Application Security Testing (SAST).\",\"score\":7,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#sast\"},{\"name\":\"Vulnerabilities\",\"description\":\"This check determines whether the project has open, unfixed vulnerabilities in its own codebase or dependencies using the OSV service.\",\"score\":3,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities\"},{\"name\":\"CI-Tests\",\"description\":\"This check tries to determine if the project runs tests before pull requests are merged.\",\"score\":6,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#ci-tests\"},{\"name\":\"Contributors\",\"description\":\"This check tries to determine if the project has recent contributors from multiple organizations (e.g., companies).\",\"score\":8,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#contributors\"},{\"name\":\"Dependency-Update-Tool\",\"description\":\"This check tries to determine if the project uses a dependency update tool, specifically one of: Dependabot, Renovate bot, PyUp.\",\"score\":2,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#dependency-update-tool\"},{\"name\":\"Webhooks\",\"description\":\"This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.\",\"score\":4,\"reason\":\"\",\"details\":[],\"documentationUrl\":\"https://github.com/ossf/scorecard/blob/main/docs/checks.md#webhooks\"}]");
         healthMetaComponent.setScorecardTimestamp(new Date(444));
         healthMetaComponent.setAvgIssueAgeDays(123.5f);
         qm.persist(healthMetaComponent);
@@ -419,8 +421,26 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
                    && health.scoreCardScore == 0.75
                    && health.scoreCardReferenceVersion == "scoreRefVer"
                    && health.scoreCardTimestamp == timestamp("1970-01-01T00:00:00.444Z")
-                   && health.scoreCardChecks.maintained == 4.5
-                """ // TODO: add others here
+                   && health.scoreCardChecks.packaging == 5.0
+                   && health.scoreCardChecks.tokenPermissions == 3.0
+                   && health.scoreCardChecks.codeReview == 8.0
+                   && health.scoreCardChecks.pinnedDependencies == 6.0
+                   && health.scoreCardChecks.binaryArtifacts == 10.0
+                   && health.scoreCardChecks.dangerousWorkflow == 2.0
+                   && health.scoreCardChecks.maintained == 7.0
+                   && health.scoreCardChecks.ciiBestPractices == 4.0
+                   && health.scoreCardChecks.securityPolicy == 9.0
+                   && health.scoreCardChecks.fuzzing == 1.0
+                   && health.scoreCardChecks.license == 10.0
+                   && health.scoreCardChecks.signedReleases == 0.0
+                   && health.scoreCardChecks.branchProtection == 5.0
+                   && health.scoreCardChecks.sast == 7.0
+                   && health.scoreCardChecks.vulnerabilities == 3.0
+                   && health.scoreCardChecks.ciTests == 6.0
+                   && health.scoreCardChecks.contributors == 8.0
+                   && health.scoreCardChecks.dependencyUpdateTool == 2.0
+                   && health.scoreCardChecks.webhooks == 4.0
+                """
                 .replace("__COMPONENT_UUID__", component.getUuid().toString())
                 .replace("__PROJECT_UUID__", project.getUuid().toString())
                 .replace("__RESOLVED_LICENSE_UUID__", license.getUuid().toString())

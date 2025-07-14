@@ -79,6 +79,7 @@ public class HealthMetaProjection {
     @MappedField(protoFieldName = "avgIssueAgeDays", sqlColumnName = "AVG_ISSUE_AGE_DAYS")
     public Float avgIssueAgeDays;
 
+    // Special case: we want those unpacked, so they don't get directly mapped to a proto field name.
     @MappedField(sqlColumnName = "SCORECARD_CHECKS_JSON")
     public String scoreCardChecksJson;
 }

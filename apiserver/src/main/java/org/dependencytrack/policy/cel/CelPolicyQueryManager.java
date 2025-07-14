@@ -194,14 +194,16 @@ class CelPolicyQueryManager implements AutoCloseable {
     }
 
     List<HealthMetaProjection> fetchAllComponentHealthMeta(final List<String> purls, final Collection<String> protoFieldNames) {
-        // todo: when any of the scoreCardChecks are accessed, that is present in protoFieldNames -
-        //   make sure there's a FieldMapping with scoreCardChecksJson java field name and SCORECARD_CHECKS_JSON SQL
-        //   replace the FieldMapping in the stream
         String sqlSelectColumns = Stream.concat(
                         // always want the purl in the projection
                         Stream.of(new FieldMapping("purl", "purl", "PURL")),
                         getFieldMappings(HealthMetaProjection.class).stream()
-                                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
+                                .filter(mapping -> {
+                                    boolean wantMappedField = protoFieldNames.contains(mapping.protoFieldName());
+                                    boolean wantScoreCardJson = protoFieldNames.contains("scoreCardChecks")
+                                            && mapping.protoFieldName().equals("scoreCardChecksJson");
+                                    return wantMappedField || wantScoreCardJson;
+                                })
                 )
                 .map(mapping -> "\"HMC\".\"%s\" AS \"%s\"".formatted(mapping.sqlColumnName(), mapping.javaFieldName()))
                 .collect(Collectors.joining(", "));

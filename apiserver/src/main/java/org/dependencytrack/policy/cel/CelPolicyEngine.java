@@ -437,7 +437,11 @@ public class CelPolicyEngine {
                     Map.entry("Signed-Releases", "signedReleases"),
                     Map.entry("Branch-Protection", "branchProtection"),
                     Map.entry("SAST", "sast"),
-                    Map.entry("Vulnerabilities", "vulnerabilities")
+                    Map.entry("Vulnerabilities", "vulnerabilities"),
+                    Map.entry("CI-Tests", "ciTests"),
+                    Map.entry("Contributors", "contributors"),
+                    Map.entry("Dependency-Update-Tool", "dependencyUpdateTool"),
+                    Map.entry("Webhooks", "webhooks")
             );
 
             for (JsonNode item : array) {
@@ -458,6 +462,7 @@ public class CelPolicyEngine {
 
             return scb.build();
         } catch (Exception e) {
+            LOGGER.error("Error parsing ScoreCard JSON", e);
             return ScoreCardCheck.newBuilder().build();
         }
     }

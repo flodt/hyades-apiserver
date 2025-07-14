@@ -32,6 +32,8 @@ import javax.jdo.metadata.ColumnMetadata;
 import javax.jdo.metadata.MemberMetadata;
 import javax.jdo.metadata.TypeMetadata;
 
+import java.util.function.Predicate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FieldMappingUtilTest extends PersistenceCapableTest {
@@ -44,7 +46,13 @@ public class FieldMappingUtilTest extends PersistenceCapableTest {
 
     @Test
     public void testGetFieldMappingsForHealthMetaProjection() {
-        assertValidProtoFieldsAndColumns(HealthMetaProjection.class, HealthMeta.getDescriptor(), org.dependencytrack.model.HealthMetaComponent.class);
+        assertValidProtoFieldsAndColumnsExcept(
+                HealthMetaProjection.class,
+                HealthMeta.getDescriptor(),
+                org.dependencytrack.model.HealthMetaComponent.class,
+                // exclude this:
+                (m) -> "scoreCardChecksJson".equals(m.javaFieldName())
+        );
     }
 
     @Test
@@ -75,13 +83,23 @@ public class FieldMappingUtilTest extends PersistenceCapableTest {
     private void assertValidProtoFieldsAndColumns(final Class<?> projectionClazz,
                                                   final Descriptor protoDescriptor,
                                                   final Class<?> persistenceClass) {
-        assertThat(FieldMappingUtil.getFieldMappings(projectionClazz)).allSatisfy(
-                fieldMapping -> {
-                    assertHasProtoField(protoDescriptor, fieldMapping.protoFieldName());
-                    assertHasSqlColumn(persistenceClass, fieldMapping.sqlColumnName());
-
-                }
+        assertValidProtoFieldsAndColumnsExcept(
+                projectionClazz, protoDescriptor, persistenceClass, (x) -> false
         );
+    }
+
+    private void assertValidProtoFieldsAndColumnsExcept(final Class<?> projectionClazz,
+                                                        final Descriptor protoDescriptor,
+                                                        final Class<?> persistenceClass,
+                                                        Predicate<FieldMapping> excludePredicate) {
+        assertThat(FieldMappingUtil.getFieldMappings(projectionClazz))
+                .filteredOn(excludePredicate.negate())
+                .allSatisfy(
+                        fieldMapping -> {
+                            assertHasProtoField(protoDescriptor, fieldMapping.protoFieldName());
+                            assertHasSqlColumn(persistenceClass, fieldMapping.sqlColumnName());
+                        }
+                );
     }
 
     private void assertHasProtoField(final Descriptor protoDescriptor, final String fieldName) {

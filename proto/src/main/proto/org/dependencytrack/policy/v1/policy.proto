@@ -107,6 +107,10 @@ message ScoreCardCheck {
   optional float branchProtection = 13;
   optional float sast = 14;
   optional float vulnerabilities = 15;
+  optional float ciTests = 16;
+  optional float contributors = 17;
+  optional float dependencyUpdateTool = 18;
+  optional float webhooks = 19;
 }
 
 message License {
