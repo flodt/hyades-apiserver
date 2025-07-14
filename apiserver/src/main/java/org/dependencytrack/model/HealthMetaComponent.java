@@ -22,6 +22,7 @@ package org.dependencytrack.model;
 import alpine.server.json.TrimmedStringDeserializer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.packageurl.validator.PackageURL;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -319,6 +320,7 @@ public class HealthMetaComponent implements Serializable {
         this.scorecardTimestamp = scorecardTimestamp;
     }
 
+    @JsonRawValue
     @Schema(description = "Full OpenSSF Scorecard check results")
     public String getScorecardChecksJson() {
         return scorecardChecksJson;
