@@ -175,6 +175,7 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
                         "I0"."PUBLISHED_AT" AS "publishedAt",
                         "IA"."INTEGRITY_CHECK_STATUS" AS "integrityCheckStatus",
                         "I0"."REPOSITORY_URL" AS "integrityRepoUrl",
+                        "H0"."SCORECARD_SCORE" AS "scorecardScore",
                         (SELECT COUNT(*) FROM "COMPONENT_OCCURRENCE" WHERE "COMPONENT_ID" = "A0"."ID") AS "occurrenceCount",
                         COUNT(*) OVER() AS "totalCount"
                 FROM "COMPONENT" "A0"
@@ -182,6 +183,7 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
                 LEFT JOIN "INTEGRITY_META_COMPONENT" "I0" ON "A0"."PURL" = "I0"."PURL"
                 LEFT JOIN "INTEGRITY_ANALYSIS" "IA" ON "A0"."ID" = "IA"."COMPONENT_ID"
                 LEFT OUTER JOIN "LICENSE" "D0" ON "A0"."LICENSE_ID" = "D0"."ID"
+                LEFT JOIN "HEALTH_META_COMPONENT" "H0" ON "A0"."PURL" = "H0"."PURL"
                 WHERE "A0"."PROJECT_ID" = :projectId
                 """;
 

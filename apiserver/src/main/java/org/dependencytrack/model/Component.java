@@ -420,6 +420,8 @@ public class Component implements Serializable {
     //  This is only relevant when listing components.
     private transient Long occurrenceCount;
 
+    private transient Float scorecardScore;
+
     public Component(){}
 
     public Component(final long id) {
@@ -933,6 +935,14 @@ public class Component implements Serializable {
 
     public void setOccurrenceCount(final Long occurrenceCount) {
         this.occurrenceCount = occurrenceCount;
+    }
+
+    public Float getScorecardScore() {
+        return scorecardScore;
+    }
+
+    public void setScorecardScore(Float scorecardScore) {
+        this.scorecardScore = scorecardScore;
     }
 
     @Override

@@ -31,136 +31,73 @@ import java.util.Date;
 import java.util.UUID;
 
 public class ComponentProjection {
-
     public long id;
-
     public String uuid;
-
     public String authors;
-
     public String group;
-
     public String name;
-
     public String text;
-
     public String publisher;
-
     public String version;
-
     public String classifier;
-
     public String copyright;
-
     public String description;
-
     public String extension;
-
     public String filename;
-
     public byte[] externalReferences;
-
     public String directDependencies;
-
     public String cpe;
-
     public String purl;
-
     public String purlCoordinates;
-
     public String swidTagId;
-
     public Boolean internal;
-
     public Double lastInheritedRiskScore;
-
     public String md5;
-
     public String sha1;
-
     public String sha256;
-
     public String sha384;
-
     public String sha512;
-
     public String sha3_256;
-
     public String sha3_384;
-
     public String sha3_512;
-
     public String blake2b_256;
-
     public String blake2b_384;
-
     public String blake2b_512;
-
     public String blake3;
-
     public String licenseUrl;
-
     public String componentLicenseName;
-
     public String licenseExpression;
-
     public Date publishedAt;
-
     public Date lastFetch;
-
     public String integrityCheckStatus;
-
     public String integrityRepoUrl;
-
     public Long projectId;
-
     public String projectUuid;
-
     public String projectGroup;
-
     public String projectName;
-
     public String projectVersion;
-
     public String projectClassifier;
-
     public Date projectInactiveSince;
-
     public String projectAuthors;
-
     public String projectCpe;
-
     public String projectDescription;
-
     public String projectPurl;
-
     public String projectSwidTagId;
-
     public Date lastBomImport;
-
     public String lastBomImportFormat;
-
     public Double projectLastInheritedRiskScore;
-
     public String projectDirectDependencies;
-
     public byte[] projectExternalReferences;
-
     public String projectPublisher;
-
     public String licenseUuid;
-
     public String licenseId;
     public String licenseName;
-
     public Boolean isOsiApproved;
-
     public Boolean isFsfLibre;
-
     public Boolean isCustomLicense;
-
     public long occurrenceCount;
     public Long totalCount;
+    public Float scorecardScore;
 
     public static Component mapToComponent(ComponentProjection result) {
         Component componentPersistent = new Component();
@@ -210,6 +147,7 @@ public class ComponentProjection {
         componentPersistent.setSha3_256(result.sha3_256);
         componentPersistent.setSha3_384(result.sha3_384);
         componentPersistent.setSha3_512(result.sha3_512);
+        componentPersistent.setScorecardScore(result.scorecardScore);
 
         var project = new Project();
         if (result.projectId != null) {
@@ -263,9 +201,9 @@ public class ComponentProjection {
         }
 
         if (result.publishedAt != null
-            || result.integrityCheckStatus != null
-            || result.lastFetch != null
-            || result.integrityRepoUrl != null) {
+                || result.integrityCheckStatus != null
+                || result.lastFetch != null
+                || result.integrityRepoUrl != null) {
             componentPersistent.setComponentMetaInformation(new ComponentMetaInformation(
                     result.publishedAt,
                     result.integrityCheckStatus != null ? IntegrityMatchStatus.valueOf(result.integrityCheckStatus) : null,
