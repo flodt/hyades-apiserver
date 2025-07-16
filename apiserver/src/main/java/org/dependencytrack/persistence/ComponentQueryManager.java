@@ -263,6 +263,10 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
             if (orderBy.equalsIgnoreCase("occurrenceCount")) {
                 queryString += "ORDER BY \"occurrenceCount\"";
             }
+            if (orderBy.equalsIgnoreCase("scorecardScore")) {
+                queryString += "ORDER BY \"scorecardScore\"";
+            }
+
             if (queryString.contains("ORDER BY")) {
                 if (orderDirection == OrderDirection.ASCENDING) {
                     queryString += " ASC ";
