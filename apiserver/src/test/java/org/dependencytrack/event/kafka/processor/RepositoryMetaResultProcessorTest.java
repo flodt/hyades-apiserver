@@ -18,15 +18,21 @@
  */
 package org.dependencytrack.event.kafka.processor;
 
+import alpine.event.framework.Event;
+import alpine.event.framework.EventService;
+import alpine.event.framework.Subscriber;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Timestamp;
+import org.dependencytrack.event.ComponentMetricsUpdateEvent;
+import org.dependencytrack.event.ComponentPolicyEvaluationEvent;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.FetchStatus;
 import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityAnalysis;
 import org.dependencytrack.model.IntegrityMatchStatus;
 import org.dependencytrack.model.IntegrityMetaComponent;
+import org.dependencytrack.model.Project;
 import org.dependencytrack.model.RepositoryMetaComponent;
 import org.dependencytrack.model.RepositoryType;
 import org.dependencytrack.proto.repometaanalysis.v1.AnalysisResult;
@@ -34,6 +40,8 @@ import org.dependencytrack.proto.repometaanalysis.v1.HealthMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.IntegrityMeta;
 import org.dependencytrack.proto.repometaanalysis.v1.ScoreCardCheck;
 import org.dependencytrack.util.ProtoUtil;
+import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,11 +55,21 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
+import static org.awaitility.Awaitility.await;
 
 public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
+    private static final ConcurrentLinkedQueue<Event> EVENTS = new ConcurrentLinkedQueue<>();
+
+    public static class EventSubscriber implements Subscriber {
+        @Override
+        public void inform(final Event event) {
+            EVENTS.add(event);
+        }
+    }
 
     @Rule
     public EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -62,6 +80,17 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         super.before();
 
         environmentVariables.set("INTEGRITY_CHECK_ENABLED", "true");
+
+        EventService.getInstance().subscribe(ComponentMetricsUpdateEvent.class, EventSubscriber.class);
+        EventService.getInstance().subscribe(ComponentPolicyEvaluationEvent.class, EventSubscriber.class);
+    }
+
+    @After
+    @Override
+    public void after() {
+        EventService.getInstance().unsubscribe(ProcessedVulnerabilityScanResultProcessorTest.EventSubscriber.class);
+        EVENTS.clear();
+        super.after();
     }
 
     @Test
@@ -711,6 +740,8 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
 
     @Test
     public void processNewHealthMetaModelTest() throws Exception {
+        Component component = persistTestComponent();
+
         Instant lastCommitInstant = Instant.parse("2025-07-01T12:00:00Z");
         Instant scorecardInstant = Instant.parse("2025-07-02T13:00:00Z");
 
@@ -772,6 +803,29 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(h.getScorecardReferenceVersion()).isEqualTo("v1.2.3");
         assertThat(h.getAvgIssueAgeDays()).isEqualTo(789.0f);
         assertThat(h.getStatus()).isEqualTo(FetchStatus.PROCESSED);
+
+        await("Internal event publish")
+                .atMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> assertThat(EVENTS).satisfiesExactly(
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentPolicyEvaluationEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        ),
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentMetricsUpdateEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        )
+                ));
     }
 
     @Test
@@ -785,10 +839,16 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
             query.setResult("count(this)");
             assertThat(query.executeResultUnique(Long.class)).isZero();
         }
+
+        await("Internal event publish")
+                .atMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> assertThat(EVENTS).isEmpty());
     }
 
     @Test
     public void processUpdateExistingHealthMetaTest() throws Exception {
+        Component component = persistTestComponent();
+
         final var healthMetaComponent = new HealthMetaComponent();
         healthMetaComponent.setPurl("pkg:maven/foo/bar@1.2.3");
         healthMetaComponent.setStatus(FetchStatus.PROCESSED);
@@ -813,10 +873,35 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         assertThat(healthMetaComponent.getStatus()).isEqualTo(FetchStatus.PROCESSED);
         assertThat(healthMetaComponent.getScorecardScore()).isEqualTo(0.0f);
         assertThat(healthMetaComponent.getStars()).isEqualTo(1);
+
+        await("Internal event publish")
+                .atMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> assertThat(EVENTS).satisfiesExactly(
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentPolicyEvaluationEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        ),
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentMetricsUpdateEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        )
+                ));
     }
 
     @Test
     public void processScorecardResultHealthMetaModelTest() throws Exception {
+        Component component = persistTestComponent();
+
         final var result = AnalysisResult.newBuilder()
                 .setComponent(org.dependencytrack.proto.repometaanalysis.v1.Component.newBuilder()
                         .setPurl("pkg:maven/foo/bar@1.2.3"))
@@ -891,5 +976,40 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
                                 "https://checkBDocumentation.com"
                         )
                 );
+
+        await("Internal event publish")
+                .atMost(Duration.ofSeconds(1))
+                .untilAsserted(() -> assertThat(EVENTS).satisfiesExactly(
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentPolicyEvaluationEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        ),
+                        event ->
+                                assertThat(event)
+                                        .isInstanceOfSatisfying(
+                                                ComponentMetricsUpdateEvent.class,
+                                                e ->
+                                                        assertThat(e.getUuid())
+                                                                .isNotNull()
+                                                                .isEqualTo(component.getUuid())
+                                        )
+                ));
+    }
+
+    private @NotNull Component persistTestComponent() {
+        Project project = new Project();
+        project.setName("Test Project");
+
+        Component component = new Component();
+        component.setName("Test Component");
+        component.setPurl("pkg:maven/foo/bar@1.2.3");
+        component.setProject(project);
+
+        return qm.persist(component);
     }
 }

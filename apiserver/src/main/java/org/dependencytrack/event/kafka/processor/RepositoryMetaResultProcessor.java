@@ -19,14 +19,19 @@
 package org.dependencytrack.event.kafka.processor;
 
 import alpine.common.logging.Logger;
+import alpine.event.framework.ChainableEvent;
+import alpine.event.framework.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.dependencytrack.event.ComponentMetricsUpdateEvent;
+import org.dependencytrack.event.ComponentPolicyEvaluationEvent;
 import org.dependencytrack.event.kafka.processor.api.Processor;
 import org.dependencytrack.event.kafka.processor.exception.ProcessingException;
+import org.dependencytrack.model.Component;
 import org.dependencytrack.model.FetchStatus;
 import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.model.IntegrityMetaComponent;
@@ -168,6 +173,19 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         } else {
             qm.updateHealthMetaComponent(persistentHealthMetaComponent);
         }
+
+        // Trigger update event to all affected components
+        qm.getComponentsByPurl(purl.canonicalize())
+                .stream()
+                .map(Component::getUuid)
+                .map(uuid -> {
+                    final ChainableEvent metricsUpdateEvent = new ComponentMetricsUpdateEvent(uuid);
+                    final ChainableEvent policyEvalEvent = new ComponentPolicyEvaluationEvent(uuid);
+                    policyEvalEvent.onSuccess(metricsUpdateEvent);
+                    policyEvalEvent.onFailure(metricsUpdateEvent);
+                    return policyEvalEvent;
+                })
+                .forEach(Event::dispatch);
     }
 
     private IntegrityMetaComponent synchronizeIntegrityMetadata(final QueryManager queryManager, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
