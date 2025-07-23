@@ -50,7 +50,6 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.VulnerabilityAlias;
 import org.dependencytrack.persistence.DefaultObjectGenerator;
 import org.dependencytrack.plugin.PluginManager;
-import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.proto.storage.v1alpha1.FileMetadata;
 import org.dependencytrack.storage.FileStorage;
 import org.dependencytrack.tasks.BomUploadProcessingTask;
@@ -222,7 +221,7 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         qm.persist(metaComponent);
 
         final var healthMetaComponent = new HealthMetaComponent();
-        healthMetaComponent.setPurl("componentPurl");
+        healthMetaComponent.setPurlCoordinates("componentPurl");
         healthMetaComponent.setStatus(FetchStatus.PROCESSED);
         healthMetaComponent.setStars(1);
         healthMetaComponent.setForks(2);

@@ -20,6 +20,10 @@ package org.dependencytrack.tasks;
 
 import alpine.model.IConfigProperty.PropertyType;
 import com.github.packageurl.PackageURL;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.cyclonedx.proto.v1_6.Classification;
 import org.cyclonedx.proto.v1_6.Dependency;
@@ -58,11 +62,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-
 import javax.jdo.JDOObjectNotFoundException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -84,7 +83,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static org.apache.commons.io.IOUtils.resourceToURL;
 import static org.assertj.core.api.Assertions.assertThat;
