@@ -88,7 +88,7 @@ public class ComponentHealthResource extends AbstractConfigPropertyResource {
             if (component != null && component.getPurl() != null) {
                 requireAccess(qm, component.getProject());
 
-                HealthMetaComponent healthMetaComponent = qm.getHealthMetaComponent(component.getPurl().toString());
+                HealthMetaComponent healthMetaComponent = qm.getHealthMetaComponent(component.getPurlCoordinates().toString());
 
                 if (healthMetaComponent != null) {
                     return Response.ok(healthMetaComponent).build();

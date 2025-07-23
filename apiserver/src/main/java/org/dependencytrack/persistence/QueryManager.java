@@ -1587,8 +1587,8 @@ public class QueryManager extends AlpineQueryManager {
         getIntegrityMetaQueryManager().createIntegrityMetaHandlingConflict(integrityMetaComponent);
     }
 
-    public HealthMetaComponent getHealthMetaComponent(String purl) {
-        return getHealthMetaQueryManager().getHealthMetaComponent(purl);
+    public HealthMetaComponent getHealthMetaComponent(String purlCoordinates) {
+        return getHealthMetaQueryManager().getHealthMetaComponent(purlCoordinates);
     }
 
     public HealthMetaComponent updateHealthMetaComponent(HealthMetaComponent healthMetaComponent) {
