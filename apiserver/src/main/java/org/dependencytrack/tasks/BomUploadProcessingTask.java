@@ -1177,7 +1177,7 @@ public class BomUploadProcessingTask implements Subscriber {
                 if (SUPPORTED_PACKAGE_URLS_FOR_HEALTH_CHECK.contains(component.getPurl().getType())) {
                     events.add(new ComponentRepositoryMetaAnalysisEvent(
                             null,
-                            component.getPurl().canonicalize(),
+                            component.getPurlCoordinates().toString(),
                             component.isInternal(),
                             FETCH_META_HEALTH
                     ));
