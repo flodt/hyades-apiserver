@@ -83,7 +83,7 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
         qm.persist(orphanedRepoMetadata);
 
         final var healthMetadata = new HealthMetaComponent();
-        healthMetadata.setPurl(EXISTING_PURL);
+        healthMetadata.setPurlCoordinates(EXISTING_PURL);
         healthMetadata.setStars(42);
         healthMetadata.setScorecardScore(10.0f);
         healthMetadata.setDependents(5000);
@@ -91,7 +91,7 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
         qm.persist(healthMetadata);
 
         final var orphanedHealthMetadata = new HealthMetaComponent();
-        orphanedHealthMetadata.setPurl(ORPHANED_PURL);
+        orphanedHealthMetadata.setPurlCoordinates(ORPHANED_PURL);
         orphanedHealthMetadata.setStars(10);
         orphanedHealthMetadata.setScorecardScore(5.0f);
         orphanedHealthMetadata.setDependents(2000);

@@ -60,7 +60,7 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
         // Case 1: don't have anything in the DB yet, trigger request and create new entry
         if (persistentHealthMeta == null) {
             HealthMetaComponent healthMetaComponent = queryManager
-                    .createHealthMetaComponent(createHealthMetaComponent(componentProjection.purl().toString()));
+                    .createHealthMetaComponent(createHealthMetaComponent(componentProjection.purlCoordinates()));
             dispatchEvent();
             return healthMetaComponent;
         }

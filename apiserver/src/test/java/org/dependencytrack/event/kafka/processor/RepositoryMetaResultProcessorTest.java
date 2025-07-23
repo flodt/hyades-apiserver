@@ -850,7 +850,7 @@ public class RepositoryMetaResultProcessorTest extends AbstractProcessorTest {
         Component component = persistTestComponent();
 
         final var healthMetaComponent = new HealthMetaComponent();
-        healthMetaComponent.setPurl("pkg:maven/foo/bar@1.2.3");
+        healthMetaComponent.setPurlCoordinates("pkg:maven/foo/bar@1.2.3");
         healthMetaComponent.setStatus(FetchStatus.PROCESSED);
         healthMetaComponent.setScorecardScore(10.0f);
         healthMetaComponent.setStars(500);

@@ -89,7 +89,7 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
 
         // persist
         var healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(TEST_PURL);
+        healthMeta.setPurlCoordinates(TEST_PURL);
         healthMeta.setStars(42);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStatus(FetchStatus.PROCESSED);
@@ -114,7 +114,7 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
 
         // persist
         var healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(TEST_PURL);
+        healthMeta.setPurlCoordinates(TEST_PURL);
         healthMeta.setStars(42);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStatus(FetchStatus.IN_PROGRESS);
@@ -138,7 +138,7 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
 
         // persist
         var healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(TEST_PURL);
+        healthMeta.setPurlCoordinates(TEST_PURL);
         healthMeta.setStars(42);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStatus(FetchStatus.PROCESSED);

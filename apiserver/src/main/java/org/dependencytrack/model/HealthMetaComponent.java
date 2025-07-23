@@ -56,14 +56,14 @@ public class HealthMetaComponent implements Serializable {
     private long id;
 
     @Persistent
-    @Column(name = "PURL", allowsNull = "false", jdbcType = "VARCHAR", length = 1024)
-    @Index(name = "PURL_IDX")
+    @Column(name = "PURL_COORDINATES", allowsNull = "false", jdbcType = "VARCHAR", length = 1024)
+    @Index(name = "PURL_COORDINATES_IDX")
     @Size(max = 1024)
     @PackageURL
     @JsonDeserialize(using = TrimmedStringDeserializer.class)
     @Unique
     @NotNull
-    private String purl;
+    private String purlCoordinates;
 
     @Persistent
     @Column(name = "STARS")
@@ -160,12 +160,12 @@ public class HealthMetaComponent implements Serializable {
         this.id = id;
     }
 
-    public String getPurl() {
-        return purl;
+    public String getPurlCoordinates() {
+        return purlCoordinates;
     }
 
-    public void setPurl(String purl) {
-        this.purl = purl;
+    public void setPurlCoordinates(String purlCoordinates) {
+        this.purlCoordinates = purlCoordinates;
     }
 
     @Schema(description = "Number of stars of the component's source code repository")

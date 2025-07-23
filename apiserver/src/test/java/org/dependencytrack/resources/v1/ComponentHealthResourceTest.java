@@ -58,11 +58,11 @@ public class ComponentHealthResourceTest extends ResourceTest {
         Component component = new Component();
         component.setProject(project);
         component.setName("ABC");
-        component.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        component.setPurlCoordinates("pkg:maven/org.http4s/blaze-core_2.12");
         component = qm.createComponent(component, false);
 
         HealthMetaComponent healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(component.getPurl().toString());
+        healthMeta.setPurlCoordinates(component.getPurlCoordinates().toString());
         healthMeta.setStatus(FetchStatus.PROCESSED);
         healthMeta.setScorecardScore(TEST_SCORECARD_SCORE);
         healthMeta.setStars(TEST_STARS);
@@ -129,11 +129,11 @@ public class ComponentHealthResourceTest extends ResourceTest {
         Component component = new Component();
         component.setProject(project);
         component.setName("ABC");
-        component.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        component.setPurlCoordinates("pkg:maven/org.http4s/blaze-core_2.12");
         component = qm.createComponent(component, false);
 
         HealthMetaComponent healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(component.getPurl().toString());
+        healthMeta.setPurlCoordinates(component.getPurlCoordinates().toString());
         healthMeta.setStatus(FetchStatus.PROCESSED);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStars(39);

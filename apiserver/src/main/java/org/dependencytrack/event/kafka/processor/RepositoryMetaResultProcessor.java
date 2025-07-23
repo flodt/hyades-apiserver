@@ -84,11 +84,11 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
 
     private void synchronizeHealthMetadata(final QueryManager qm, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
         final AnalysisResult result = record.value();
-        PackageURL purl = new PackageURL(result.getComponent().getPurl());
+        PackageURL purlCoordinates = new PackageURL(result.getComponent().getPurl());
         if (result.hasHealthMeta()) {
-            synchronizeHealthMetaResult(record, qm, purl);
+            synchronizeHealthMetaResult(record, qm, purlCoordinates);
         } else {
-            LOGGER.debug("Incoming result for component with purl %s does not include component health info".formatted(purl));
+            LOGGER.debug("Incoming result for component with purl %s does not include component health info".formatted(purlCoordinates));
         }
     }
 
@@ -106,7 +106,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         final boolean isNew = (persistentHealthMetaComponent == null);
         if (isNew) {
             persistentHealthMetaComponent = new HealthMetaComponent();
-            persistentHealthMetaComponent.setPurl(purl.toString());
+            persistentHealthMetaComponent.setPurlCoordinates(purl.toString());
         }
 
         // Persist all fields

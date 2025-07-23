@@ -57,7 +57,7 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
 
     @Override
     public synchronized HealthMetaComponent updateHealthMetaComponent(HealthMetaComponent transientHealthMetaComponent) {
-        final HealthMetaComponent healthMeta = getHealthMetaComponent(transientHealthMetaComponent.getPurl());
+        final HealthMetaComponent healthMeta = getHealthMetaComponent(transientHealthMetaComponent.getPurlCoordinates());
         if (healthMeta != null) {
             healthMeta.setStars(transientHealthMetaComponent.getStars());
             healthMeta.setForks(transientHealthMetaComponent.getForks());
@@ -82,7 +82,7 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
             healthMeta.setAvgIssueAgeDays(transientHealthMetaComponent.getAvgIssueAgeDays());
             return persist(healthMeta);
         } else {
-            LOGGER.debug("No record found in HealthMetaComponent for purl " + transientHealthMetaComponent.getPurl());
+            LOGGER.debug("No record found in HealthMetaComponent for purl " + transientHealthMetaComponent.getPurlCoordinates());
             return null;
         }
     }

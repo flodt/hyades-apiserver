@@ -86,7 +86,7 @@ public class CelPolicyQueryManagerTest extends PersistenceCapableTest {
         qm.createComponent(component, false);
 
         HealthMetaComponent healthMetaComponent = new HealthMetaComponent();
-        healthMetaComponent.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        healthMetaComponent.setPurlCoordinates("pkg:maven/org.http4s/blaze-core_2.12");
         healthMetaComponent.setStatus(FetchStatus.PROCESSED);
         healthMetaComponent.setStars(42);
         healthMetaComponent.setScorecardScore(10.0f);

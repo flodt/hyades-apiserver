@@ -34,7 +34,7 @@ public class HealthMetaQueryManagerTest extends PersistenceCapableTest {
         final String PURL = "pkg:maven/acme/example@1.0.0";
 
         HealthMetaComponent healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(PURL);
+        healthMeta.setPurlCoordinates(PURL);
         healthMeta.setStatus(FetchStatus.PROCESSED);
         healthMeta.setStars(42);
 
@@ -55,7 +55,7 @@ public class HealthMetaQueryManagerTest extends PersistenceCapableTest {
         final String PURL = "pkg:maven/acme/example@1.0.0";
 
         HealthMetaComponent healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl(PURL);
+        healthMeta.setPurlCoordinates(PURL);
         healthMeta.setStatus(FetchStatus.PROCESSED);
         healthMeta.setStars(42);
 
@@ -76,13 +76,13 @@ public class HealthMetaQueryManagerTest extends PersistenceCapableTest {
         final String PURL = "pkg:maven/acme/example@1.0.0";
 
         HealthMetaComponent oldHealthMeta = new HealthMetaComponent();
-        oldHealthMeta.setPurl(PURL);
+        oldHealthMeta.setPurlCoordinates(PURL);
         oldHealthMeta.setStatus(FetchStatus.PROCESSED);
         oldHealthMeta.setStars(42);
         qm.createHealthMetaComponent(oldHealthMeta);
 
         HealthMetaComponent updatedHealthMeta = new HealthMetaComponent();
-        updatedHealthMeta.setPurl(PURL);
+        updatedHealthMeta.setPurlCoordinates(PURL);
         updatedHealthMeta.setStatus(FetchStatus.PROCESSED);
         updatedHealthMeta.setStars(50);
 
@@ -93,7 +93,7 @@ public class HealthMetaQueryManagerTest extends PersistenceCapableTest {
 
         assertThat(result.getStars()).isEqualTo(50);
         assertThat(result.getStatus()).isEqualTo(FetchStatus.PROCESSED);
-        assertThat(result.getPurl()).isEqualTo(PURL);
+        assertThat(result.getPurlCoordinates()).isEqualTo(PURL);
 
         assertThat(result.getLastFetch())
                 .isNotNull()

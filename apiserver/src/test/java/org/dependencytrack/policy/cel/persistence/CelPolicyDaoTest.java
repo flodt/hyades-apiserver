@@ -334,7 +334,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
         qm.persist(component);
 
         final var healthMeta = new HealthMetaComponent();
-        healthMeta.setPurl("componentPurl");
+        healthMeta.setPurlCoordinates("componentPurl");
         healthMeta.setStars(123);
         healthMeta.setForks(45);
         healthMeta.setContributors(10);

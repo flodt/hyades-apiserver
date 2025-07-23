@@ -49,10 +49,10 @@ public abstract class AbstractMetaHandler<T> implements Handler<T> {
         return integrityMetaComponent;
     }
 
-    public static HealthMetaComponent createHealthMetaComponent(String purl) {
+    public static HealthMetaComponent createHealthMetaComponent(String purlCoordinates) {
         HealthMetaComponent healthMetaComponent = new HealthMetaComponent();
         healthMetaComponent.setStatus(FetchStatus.IN_PROGRESS);
-        healthMetaComponent.setPurl(purl);
+        healthMetaComponent.setPurlCoordinates(purlCoordinates);
         healthMetaComponent.setLastFetch(Date.from(Instant.now()));
         return healthMetaComponent;
     }

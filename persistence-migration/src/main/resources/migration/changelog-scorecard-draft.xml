@@ -12,7 +12,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="HEALTH_META_COMPONENT_PK"/>
             </column>
 
-            <column name="PURL" type="VARCHAR(1024)">
+            <column name="PURL_COORDINATES" type="VARCHAR(1024)">
                 <constraints nullable="false" unique="true" uniqueConstraintName="HEALTH_META_COMPONENT_U1"/>
             </column>
 
@@ -42,9 +42,9 @@
         </createTable>
 
         <createIndex tableName="HEALTH_META_COMPONENT"
-                     indexName="HEALTH_META_COMPONENT_PURL_IDX"
+                     indexName="HEALTH_META_COMPONENT_PURL_COORDINATES_IDX"
                      unique="true">
-            <column name="PURL"/>
+            <column name="PURL_COORDINATES"/>
         </createIndex>
     </changeSet>
 
