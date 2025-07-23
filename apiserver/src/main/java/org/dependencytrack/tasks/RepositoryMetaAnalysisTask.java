@@ -138,8 +138,8 @@ public class RepositoryMetaAnalysisTask implements Subscriber {
 
     private void dispatchComponents(final List<ComponentProjection> components) {
         for (final var component : components) {
-            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.getPurlCoordinates(), component.getInternal(), FetchMeta.FETCH_META_LATEST_VERSION));
-            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.getPurl(), component.getInternal(), FetchMeta.FETCH_META_HEALTH));
+            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_LATEST_VERSION));
+            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purl(), component.internal(), FetchMeta.FETCH_META_HEALTH));
         }
     }
 
@@ -160,43 +160,7 @@ public class RepositoryMetaAnalysisTask implements Subscriber {
         }
     }
 
-    public static class ComponentProjection {
-        private String purlCoordinates;
-        private Boolean internal;
-        private String purl;
-
-        public ComponentProjection() {
-        }
-
-        public ComponentProjection(String purlCoordinates, Boolean internal, String purl) {
-            this.purlCoordinates = purlCoordinates;
-            this.internal = internal;
-            this.purl = purl;
-        }
-
-        public String getPurlCoordinates() {
-            return purlCoordinates;
-        }
-
-        public void setPurlCoordinates(String purlCoordinates) {
-            this.purlCoordinates = purlCoordinates;
-        }
-
-        public Boolean getInternal() {
-            return internal;
-        }
-
-        public void setInternal(Boolean internal) {
-            this.internal = internal;
-        }
-
-        public String getPurl() {
-            return purl;
-        }
-
-        public void setPurl(String purl) {
-            this.purl = purl;
-        }
+    public record ComponentProjection(String purlCoordinates, Boolean internal, String purl) {
     }
 
 }
