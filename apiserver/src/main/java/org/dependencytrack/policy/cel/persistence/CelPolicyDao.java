@@ -136,10 +136,10 @@ public interface CelPolicyDao {
             FROM
               "HEALTH_META_COMPONENT" AS "HMC"
             WHERE
-              "HMC"."PURL" = :purl
+              "HMC"."PURL_COORDINATES" = :purlCoordinates
             """)
     @RegisterRowMapper(CelPolicyHealthMetaRowMapper.class)
-    HealthMeta getHealthMeta(@Define List<String> fetchColumns, String purl);
+    HealthMeta getHealthMeta(@Define List<String> fetchColumns, String purlCoordinates);
 
     @SqlQuery("""
             SELECT DISTINCT
@@ -284,7 +284,7 @@ public interface CelPolicyDao {
                 .map(fieldMapping -> "\"HMC\".\"%s\" AS \"%s\"".formatted(fieldMapping.sqlColumnName(), fieldMapping.protoFieldName()))
                 .collect(Collectors.toList());
 
-        final HealthMeta fetchedHealthMeta = getHealthMeta(sqlSelectColumns, healthMeta.getPurl());
+        final HealthMeta fetchedHealthMeta = getHealthMeta(sqlSelectColumns, healthMeta.getPurlCoordinates());
         if (fetchedHealthMeta == null) {
             throw new NoSuchElementException();
         }

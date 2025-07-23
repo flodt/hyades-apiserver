@@ -68,6 +68,7 @@ import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.ScoreCardCheck;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
 import org.dependencytrack.util.NotificationUtil;
+import org.dependencytrack.util.PurlUtil;
 import org.dependencytrack.util.VulnerabilityUtil;
 import org.projectnessie.cel.tools.ScriptCreateException;
 import org.projectnessie.cel.tools.ScriptException;
@@ -228,8 +229,10 @@ public class CelPolicyEngine {
                                 .map(protoVulnById::get)
                                 .toList();
 
+                String purlCoordinates = PurlUtil.silentPurlCoordinatesOnlyWithFallback(component.purl);
+
                 HealthMetaProjection healthMeta = healthMetas.stream()
-                        .filter(hmp -> Objects.equals(hmp.purl, component.purl))
+                        .filter(hmp -> Objects.equals(hmp.purlCoordinates, purlCoordinates))
                         .findFirst()
                         .orElse(new HealthMetaProjection());
 

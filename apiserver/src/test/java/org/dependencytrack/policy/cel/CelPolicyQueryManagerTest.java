@@ -104,7 +104,7 @@ public class CelPolicyQueryManagerTest extends PersistenceCapableTest {
 
         assertThat(healthMetaProjections)
                 .extracting(
-                        hp -> hp.purl,
+                        hp -> hp.purlCoordinates,
                         hp -> hp.stars,
                         hp -> hp.scorecardScore,
                         hp -> hp.forks,

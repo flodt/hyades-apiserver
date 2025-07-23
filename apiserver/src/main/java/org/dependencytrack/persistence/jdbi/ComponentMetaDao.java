@@ -97,7 +97,7 @@ public interface ComponentMetaDao extends SqlObject {
             WHERE NOT EXISTS(
                 SELECT 1
                 FROM "COMPONENT"
-                WHERE "COMPONENT"."PURL" = "HEALTH_META_COMPONENT"."PURL"
+                WHERE "COMPONENT"."PURLCOORDINATES" = "HEALTH_META_COMPONENT"."PURL_COORDINATES"
             )
             """)
     int deleteOrphanHealthMetaComponents();

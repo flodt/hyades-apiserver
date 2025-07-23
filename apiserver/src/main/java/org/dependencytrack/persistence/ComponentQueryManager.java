@@ -183,7 +183,7 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
                 LEFT JOIN "INTEGRITY_META_COMPONENT" "I0" ON "A0"."PURL" = "I0"."PURL"
                 LEFT JOIN "INTEGRITY_ANALYSIS" "IA" ON "A0"."ID" = "IA"."COMPONENT_ID"
                 LEFT OUTER JOIN "LICENSE" "D0" ON "A0"."LICENSE_ID" = "D0"."ID"
-                LEFT JOIN "HEALTH_META_COMPONENT" "H0" ON "A0"."PURL" = "H0"."PURL"
+                LEFT JOIN "HEALTH_META_COMPONENT" "H0" ON "A0"."PURLCOORDINATES" = "H0"."PURL_COORDINATES"
                 WHERE "A0"."PROJECT_ID" = :projectId
                 """;
 

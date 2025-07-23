@@ -22,8 +22,8 @@ package org.dependencytrack.policy.cel.mapping;
 import java.util.Date;
 
 public class HealthMetaProjection {
-    @MappedField(protoFieldName = "purl", sqlColumnName = "PURL")
-    public String purl;
+    @MappedField(protoFieldName = "purlCoordinates", sqlColumnName = "PURL_COORDINATES")
+    public String purlCoordinates;
     
     @MappedField(protoFieldName = "stars", sqlColumnName = "STARS")
     public Integer stars;

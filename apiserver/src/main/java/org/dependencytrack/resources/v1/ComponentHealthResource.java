@@ -85,7 +85,7 @@ public class ComponentHealthResource extends AbstractConfigPropertyResource {
     ) {
         try (QueryManager qm = new QueryManager(getAlpineRequest())) {
             final Component component = qm.getObjectByUuid(Component.class, uuid);
-            if (component != null && component.getPurl() != null) {
+            if (component != null && component.getPurlCoordinates() != null) {
                 requireAccess(qm, component.getProject());
 
                 HealthMetaComponent healthMetaComponent = qm.getHealthMetaComponent(component.getPurlCoordinates().toString());

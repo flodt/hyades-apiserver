@@ -33,7 +33,7 @@ public class CelPolicyHealthMetaRowMapper implements RowMapper<HealthMeta> {
     @Override
     public HealthMeta map(ResultSet rs, StatementContext ctx) throws SQLException {
         final HealthMeta.Builder builder = HealthMeta.newBuilder();
-        maybeSet(rs, "purl", ResultSet::getString, builder::setPurl);
+        maybeSet(rs, "purlCoordinates", ResultSet::getString, builder::setPurlCoordinates);
         maybeSet(rs, "stars", ResultSet::getInt, builder::setStars);
         maybeSet(rs, "forks", ResultSet::getInt, builder::setForks);
         maybeSet(rs, "contributors", ResultSet::getInt, builder::setContributors);

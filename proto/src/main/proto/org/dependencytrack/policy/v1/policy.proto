@@ -87,7 +87,7 @@ message HealthMeta {
   optional float scoreCardScore = 16;
   optional string scoreCardReferenceVersion = 17;
   optional google.protobuf.Timestamp scoreCardTimestamp = 18;
-  optional string purl = 19;
+  optional string purlCoordinates = 19;
   optional float avgIssueAgeDays = 20;
 }
 

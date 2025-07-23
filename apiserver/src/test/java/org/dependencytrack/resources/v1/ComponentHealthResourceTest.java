@@ -79,7 +79,7 @@ public class ComponentHealthResourceTest extends ResourceTest {
 
         JsonObject json = parseJsonObject(response);
         assertThat(json).isNotNull();
-        assertThat(json.getString("purl")).isEqualTo(component.getPurl().toString());
+        assertThat(json.getString("purlCoordinates")).isEqualTo(component.getPurlCoordinates().toString());
         assertThat(json.getJsonNumber("scorecardScore").doubleValue()).isEqualTo(TEST_SCORECARD_SCORE);
         assertThat(json.getJsonNumber("stars").intValue()).isEqualTo(TEST_STARS);
         assertThat(json.getJsonNumber("forks").intValue()).isEqualTo(TEST_FORKS);
@@ -106,7 +106,7 @@ public class ComponentHealthResourceTest extends ResourceTest {
         Component component = new Component();
         component.setProject(project);
         component.setName("ABC");
-        component.setPurl("pkg:maven/org.http4s/blaze-core_2.12");
+        component.setPurlCoordinates("pkg:maven/org.http4s/blaze-core_2.12");
         component = qm.createComponent(component, false);
 
         Response response = jersey

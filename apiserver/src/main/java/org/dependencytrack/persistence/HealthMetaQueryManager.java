@@ -50,7 +50,7 @@ public class HealthMetaQueryManager extends QueryManager implements IQueryManage
 
     @Override
     public HealthMetaComponent getHealthMetaComponent(String purlCoordinates) {
-        final Query<HealthMetaComponent> q = pm.newQuery(HealthMetaComponent.class, "purl == :purlCoordinates");
+        final Query<HealthMetaComponent> q = pm.newQuery(HealthMetaComponent.class, "purlCoordinates == :purlCoordinates");
         q.setParameters(purlCoordinates);
         return q.executeUnique();
     }

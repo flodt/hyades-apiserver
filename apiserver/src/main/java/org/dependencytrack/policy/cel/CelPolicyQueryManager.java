@@ -196,7 +196,7 @@ class CelPolicyQueryManager implements AutoCloseable {
     List<HealthMetaProjection> fetchAllComponentHealthMeta(final List<String> purls, final Collection<String> protoFieldNames) {
         String sqlSelectColumns = Stream.concat(
                         // always want the purl in the projection
-                        Stream.of(new FieldMapping("purl", "purl", "PURL")),
+                        Stream.of(new FieldMapping("purlCoordinates", "purl", "PURL_COORDINATES")),
                         getFieldMappings(HealthMetaProjection.class).stream()
                                 .filter(mapping -> {
                                     boolean wantMappedField = protoFieldNames.contains(mapping.protoFieldName());
@@ -214,7 +214,7 @@ class CelPolicyQueryManager implements AutoCloseable {
         String sql = """
                 SELECT %s
                 FROM "HEALTH_META_COMPONENT" "HMC"
-                WHERE "HMC"."PURL" = ANY(:purls)
+                WHERE "HMC"."PURL_COORDINATES" = ANY(:purls)
                 """.formatted(sqlSelectColumns);
 
         final Query<?> query = pm.newQuery(Query.SQL, sql);

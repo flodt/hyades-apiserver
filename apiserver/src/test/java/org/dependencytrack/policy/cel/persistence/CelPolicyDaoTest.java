@@ -330,7 +330,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
         final var component = new Component();
         component.setName("Test");
         component.setProject(project);
-        component.setPurl("componentPurl");
+        component.setPurlCoordinates("componentPurl");
         qm.persist(component);
 
         final var healthMeta = new HealthMetaComponent();
@@ -367,7 +367,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
         );
 
         final var protoHealthMeta = org.dependencytrack.proto.policy.v1.HealthMeta.newBuilder()
-                .setPurl("componentPurl")
+                .setPurlCoordinates("componentPurl")
                 .build();
 
         final var enrichedHealthMeta = withJdbiHandle(handle ->
@@ -376,7 +376,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
 
         // -- verify every field made it into the enriched proto --
         assertThatJson(JsonFormat.printer().print(enrichedHealthMeta))
-                .withMatcher("purl", equalTo("componentPurl"))
+                .withMatcher("purlCoordinates", equalTo("componentPurl"))
                 .isEqualTo("""
             {
               "stars": 123,
@@ -396,7 +396,7 @@ public class CelPolicyDaoTest extends PersistenceCapableTest {
               "scoreCardScore": 8.6,
               "scoreCardReferenceVersion": "v1.2.3",
               "scoreCardTimestamp": "2021-05-03T12:00:00Z",
-              "purl": "componentPurl",
+              "purlCoordinates": "componentPurl",
               "avgIssueAgeDays": 987.6
             }
             """);

@@ -36,6 +36,19 @@ public class PurlUtil {
                 .build();
     }
 
+    public static PackageURL silentPurlCoordinatesOnly(final String original) {
+        return silentPurlCoordinatesOnly(silentPurl(original));
+    }
+
+    public static String silentPurlCoordinatesOnlyWithFallback(final String original) {
+        PackageURL purl = silentPurlCoordinatesOnly(silentPurl(original));
+        if (purl == null) {
+            return original;
+        } else {
+            return purl.toString();
+        }
+    }
+
     public static PackageURL silentPurlCoordinatesOnly(final PackageURL original) {
         if (original == null) {
             return null;

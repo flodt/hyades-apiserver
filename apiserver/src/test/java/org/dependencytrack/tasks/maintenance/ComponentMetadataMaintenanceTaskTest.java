@@ -52,6 +52,7 @@ public class ComponentMetadataMaintenanceTaskTest extends PersistenceCapableTest
         component.setName("acme-lib");
         component.setVersion("1.0.0");
         component.setPurl(EXISTING_PURL);
+        component.setPurlCoordinates(EXISTING_PURL);
         qm.persist(component);
 
         final Instant now = Instant.now();
