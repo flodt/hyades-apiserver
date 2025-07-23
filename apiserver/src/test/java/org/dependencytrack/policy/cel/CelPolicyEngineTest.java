@@ -2047,4 +2047,24 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         }
     }
 
+    @Test
+    public void testPoliciesShouldNotFailWhenHealthNotPresent() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        qm.createPolicyCondition(policy, PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                component.name == "acme-lib" && health.scoreCardScore < 5.0
+                """, PolicyViolation.Type.SECURITY);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("acme-lib");
+        component.setPurlCoordinates("pkg:maven/com.acme/acme-lib@1.0.0");
+        qm.persist(component);
+
+        new CelPolicyEngine().evaluateComponent(component.getUuid());
+        assertThat(qm.getAllPolicyViolations(component)).isEmpty();
+    }
 }

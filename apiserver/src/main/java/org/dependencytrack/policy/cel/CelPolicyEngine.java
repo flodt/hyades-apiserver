@@ -373,6 +373,17 @@ public class CelPolicyEngine {
             final PolicyCondition condition = conditionScriptPair.getLeft();
             final CelPolicyScript script = conditionScriptPair.getRight();
 
+            // Since the availability of health metadata is not a given for all components, it's possible to run into
+            //   policies that use health data on components that don't have any - they can therefore not be evaluated
+            //   and need to be skipped.
+            boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
+            boolean butHasNoHealthMeta = HealthMeta.getDefaultInstance().equals(scriptArguments.get(CelPolicyVariable.HEALTH.variableName()));
+
+            if (needsHealthMeta && butHasNoHealthMeta) {
+                LOGGER.debug("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
+                continue;
+            }
+
             try {
                 if (script.execute(scriptArguments)) {
                     conditionsViolated.add(condition);
