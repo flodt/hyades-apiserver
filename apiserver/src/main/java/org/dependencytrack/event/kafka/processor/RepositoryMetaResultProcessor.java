@@ -175,6 +175,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         }
 
         // Trigger update event to all affected components
+        // TODO: this might lead to excessive dispatching of events when a large BOM is analyzed
         qm.getComponentsByPurl(purl.canonicalize())
                 .stream()
                 .map(Component::getUuid)

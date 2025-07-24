@@ -380,7 +380,7 @@ public class CelPolicyEngine {
             boolean butHasNoHealthMeta = HealthMeta.getDefaultInstance().equals(scriptArguments.get(CelPolicyVariable.HEALTH.variableName()));
 
             if (needsHealthMeta && butHasNoHealthMeta) {
-                LOGGER.debug("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
+                LOGGER.warn("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
                 continue;
             }
 
