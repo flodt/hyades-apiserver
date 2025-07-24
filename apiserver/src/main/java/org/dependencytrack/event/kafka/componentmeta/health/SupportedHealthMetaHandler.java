@@ -42,7 +42,7 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
     private void dispatchEvent() {
         kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(
                 componentProjection.componentUuid(),
-                componentProjection.purl().canonicalize(),
+                componentProjection.purlCoordinates(),
                 componentProjection.internal(),
                 fetchMeta
         ));
@@ -55,7 +55,7 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
 
     @Override
     public HealthMetaComponent handle() throws MalformedPackageURLException {
-        HealthMetaComponent persistentHealthMeta = queryManager.getHealthMetaComponent(componentProjection.purl().toString());
+        HealthMetaComponent persistentHealthMeta = queryManager.getHealthMetaComponent(componentProjection.purlCoordinates());
 
         // Case 1: don't have anything in the DB yet, trigger request and create new entry
         if (persistentHealthMeta == null) {
