@@ -183,7 +183,10 @@ public class CelPolicyEngine {
             // Preload components and health metadata for the entire project, to avoid excessive queries.
             final List<ComponentProjection> components = celQm.fetchAllComponents(project.getId(), requirements.get(TYPE_COMPONENT));
             final List<HealthMetaProjection> healthMetas = celQm.fetchAllComponentHealthMeta(
-                    components.stream().map(cp -> cp.purl).toList(),
+                    components.stream()
+                            .map(cp -> cp.purl)
+                            .map(PurlUtil::silentPurlCoordinatesOnlyWithFallback)
+                            .toList(),
                     requirements.get(TYPE_HEALTH)
             );
 
