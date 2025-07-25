@@ -173,20 +173,6 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
         } else {
             qm.updateHealthMetaComponent(persistentHealthMetaComponent);
         }
-
-        // Trigger update event to all affected components
-        // TODO: this might lead to excessive dispatching of events when a large BOM is analyzed
-        qm.getComponentsByPurl(purl.canonicalize())
-                .stream()
-                .map(Component::getUuid)
-                .map(uuid -> {
-                    final ChainableEvent metricsUpdateEvent = new ComponentMetricsUpdateEvent(uuid);
-                    final ChainableEvent policyEvalEvent = new ComponentPolicyEvaluationEvent(uuid);
-                    policyEvalEvent.onSuccess(metricsUpdateEvent);
-                    policyEvalEvent.onFailure(metricsUpdateEvent);
-                    return policyEvalEvent;
-                })
-                .forEach(Event::dispatch);
     }
 
     private IntegrityMetaComponent synchronizeIntegrityMetadata(final QueryManager queryManager, final ConsumerRecord<String, AnalysisResult> record) throws MalformedPackageURLException {
