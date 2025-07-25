@@ -196,4 +196,17 @@ public class PolicyCondition implements Serializable {
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
     }
+
+    @Override
+    public String toString() {
+        return "PolicyCondition{" +
+                "id=" + id +
+                ", policy=" + policy +
+                ", operator=" + operator +
+                ", subject=" + subject +
+                ", value='" + value + '\'' +
+                ", violationType=" + violationType +
+                ", uuid=" + uuid +
+                '}';
+    }
 }
