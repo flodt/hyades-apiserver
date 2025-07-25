@@ -237,7 +237,10 @@ public class CelPolicyEngine {
                 HealthMetaProjection healthMeta = healthMetas.stream()
                         .filter(hmp -> Objects.equals(hmp.purlCoordinates, purlCoordinates))
                         .findFirst()
-                        .orElse(new HealthMetaProjection());
+                        .orElseGet(() -> {
+                            LOGGER.info("Found no health meta information for component '%s'".formatted(purlCoordinates));
+                            return new HealthMetaProjection();
+                        });
 
                 final org.dependencytrack.proto.policy.v1.HealthMeta protoHealth = mapToProto(healthMeta);
 
@@ -380,11 +383,10 @@ public class CelPolicyEngine {
             //   policies that use health data on components that don't have any - they can therefore not be evaluated
             //   and need to be skipped.
             boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
-            Object healthArgument = scriptArguments.get(CelPolicyVariable.HEALTH.variableName());
-            boolean butHasNoHealthMeta = HealthMeta.getDefaultInstance().equals(healthArgument);
+            boolean butHasNoHealthMeta = HealthMeta.getDefaultInstance().equals(scriptArguments.get(CelPolicyVariable.HEALTH.variableName()));
 
             if (needsHealthMeta && butHasNoHealthMeta) {
-                LOGGER.info("Skipping condition %s that uses missing health meta, details: %s; script health argument: %s; requirements: %s".formatted(condition.getUuid(), condition.toString(), healthArgument, script.getRequirements()));
+                LOGGER.info("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
                 continue;
             }
 
