@@ -383,7 +383,7 @@ public class CelPolicyEngine {
             boolean shouldSkip = !hasCompleteData(scriptArguments, script);
             if (shouldSkip) {
                 Component component = (Component) scriptArguments.get(CelPolicyVariable.COMPONENT.variableName());
-                LOGGER.info("Skipping condition [%s] on component %s that uses missing data"
+                LOGGER.debug("Skipping condition [%s] on component %s that uses missing data"
                         .formatted(condition.getValue(), component.getPurl()));
                 continue;
             }
