@@ -64,6 +64,7 @@ import org.dependencytrack.policy.cel.mapping.HealthMetaProjection;
 import org.dependencytrack.policy.cel.mapping.LicenseProjection;
 import org.dependencytrack.policy.cel.mapping.VulnerabilityProjection;
 import org.dependencytrack.policy.cel.persistence.CelPolicyDao;
+import org.dependencytrack.proto.policy.v1.Component;
 import org.dependencytrack.proto.policy.v1.HealthMeta;
 import org.dependencytrack.proto.policy.v1.ScoreCardCheck;
 import org.dependencytrack.proto.policy.v1.Vulnerability;
@@ -244,8 +245,6 @@ public class CelPolicyEngine {
 
                 final org.dependencytrack.proto.policy.v1.HealthMeta protoHealth = mapToProto(healthMeta);
 
-                LOGGER.info("Mapped component %s with health meta %s for eval".formatted(component.toString(), healthMeta.toString()));
-
                 conditionsViolated.putAll(component.id, evaluateConditions(conditionScriptPairs, Map.of(
                         CelPolicyVariable.COMPONENT.variableName(), protoComponent,
                         CelPolicyVariable.PROJECT.variableName(), protoProject,
@@ -383,7 +382,9 @@ public class CelPolicyEngine {
 
             boolean shouldSkip = !hasCompleteData(scriptArguments, script);
             if (shouldSkip) {
-                LOGGER.info("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
+                Component component = (Component) scriptArguments.get(CelPolicyVariable.COMPONENT.variableName());
+                LOGGER.info("Skipping condition [%s] on component %s that uses missing data"
+                        .formatted(condition.getValue(), component.getPurl()));
                 continue;
             }
 
@@ -401,6 +402,7 @@ public class CelPolicyEngine {
     }
 
     private static boolean hasCompleteData(Map<String, Object> scriptArguments, CelPolicyScript script) {
+        // TODO: possibly rewrite this to take all arguments into account and not just health, if desired.
         // Since the availability of health metadata is not a given for all components, it's possible to run into
         //   policies that use health data on components that don't have any - they can therefore not be evaluated
         //   and need to be skipped.
@@ -408,7 +410,7 @@ public class CelPolicyEngine {
         //   OpenSSF Scorecard values, making it necessary to check which data is used in that specific policy in
         //   particular.
 
-        // If we don't need health metadata at all, we can execute this policy
+        // If we don't need health metadata at all, we can execute this policy - the rest does not get checked right now
         boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
         if (!needsHealthMeta) return true;
 
