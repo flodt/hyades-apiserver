@@ -82,4 +82,30 @@ public class HealthMetaProjection {
     // Special case: we want those unpacked, so they don't get directly mapped to a proto field name.
     @MappedField(sqlColumnName = "SCORECARD_CHECKS_JSON")
     public String scoreCardChecksJson;
+
+    @Override
+    public String toString() {
+        return "HealthMetaProjection{" +
+                "purlCoordinates='" + purlCoordinates + '\'' +
+                ", stars=" + stars +
+                ", forks=" + forks +
+                ", contributors=" + contributors +
+                ", commitFrequencyWeekly=" + commitFrequencyWeekly +
+                ", openIssues=" + openIssues +
+                ", openPRs=" + openPRs +
+                ", lastCommit=" + lastCommit +
+                ", busFactor=" + busFactor +
+                ", hasReadme=" + hasReadme +
+                ", hasCodeOfConduct=" + hasCodeOfConduct +
+                ", hasSecurityPolicy=" + hasSecurityPolicy +
+                ", dependents=" + dependents +
+                ", files=" + files +
+                ", isRepoArchived=" + isRepoArchived +
+                ", scorecardScore=" + scorecardScore +
+                ", scorecardReferenceVersion='" + scorecardReferenceVersion + '\'' +
+                ", scorecardTimestamp=" + scorecardTimestamp +
+                ", avgIssueAgeDays=" + avgIssueAgeDays +
+                ", scoreCardChecksJson='" + scoreCardChecksJson + '\'' +
+                '}';
+    }
 }

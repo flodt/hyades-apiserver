@@ -99,4 +99,37 @@ public class ComponentProjection {
 
     @MappedField(protoFieldName = "license_expression", sqlColumnName = "LICENSE_EXPRESSION")
     public String licenseExpression;
+
+    @Override
+    public String toString() {
+        return "ComponentProjection{" +
+                "id=" + id +
+                ", uuid='" + uuid + '\'' +
+                ", group='" + group + '\'' +
+                ", name='" + name + '\'' +
+                ", version='" + version + '\'' +
+                ", classifier='" + classifier + '\'' +
+                ", cpe='" + cpe + '\'' +
+                ", purl='" + purl + '\'' +
+                ", swidTagId='" + swidTagId + '\'' +
+                ", internal=" + internal +
+                ", md5='" + md5 + '\'' +
+                ", sha1='" + sha1 + '\'' +
+                ", sha256='" + sha256 + '\'' +
+                ", sha384='" + sha384 + '\'' +
+                ", sha512='" + sha512 + '\'' +
+                ", sha3_256='" + sha3_256 + '\'' +
+                ", sha3_384='" + sha3_384 + '\'' +
+                ", sha3_512='" + sha3_512 + '\'' +
+                ", blake2b_256='" + blake2b_256 + '\'' +
+                ", blake2b_384='" + blake2b_384 + '\'' +
+                ", blake2b_512='" + blake2b_512 + '\'' +
+                ", blake3='" + blake3 + '\'' +
+                ", resolvedLicenseId=" + resolvedLicenseId +
+                ", licenseName='" + licenseName + '\'' +
+                ", publishedAt=" + publishedAt +
+                ", latestVersion='" + latestVersion + '\'' +
+                ", licenseExpression='" + licenseExpression + '\'' +
+                '}';
+    }
 }

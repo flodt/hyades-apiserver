@@ -244,6 +244,8 @@ public class CelPolicyEngine {
 
                 final org.dependencytrack.proto.policy.v1.HealthMeta protoHealth = mapToProto(healthMeta);
 
+                LOGGER.info("Mapped component %s with health meta %s for eval".formatted(component.toString(), healthMeta.toString()));
+
                 conditionsViolated.putAll(component.id, evaluateConditions(conditionScriptPairs, Map.of(
                         CelPolicyVariable.COMPONENT.variableName(), protoComponent,
                         CelPolicyVariable.PROJECT.variableName(), protoProject,
