@@ -161,7 +161,8 @@ class CelPolicyQueryManager implements AutoCloseable {
         String sqlSelectColumns = Stream.concat(
                         Stream.of(ComponentProjection.ID_FIELD_MAPPING),
                         getFieldMappings(ComponentProjection.class).stream()
-                                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName()))
+                                .filter(mapping -> protoFieldNames.contains(mapping.protoFieldName())
+                                        || "purl".equals(mapping.protoFieldName()))  // Always fetch purl, as we need to map health meta with it
                 )
                 .map(mapping -> "\"C\".\"%s\" AS \"%s\"".formatted(mapping.sqlColumnName(), mapping.javaFieldName()))
                 .collect(Collectors.joining(", "));
