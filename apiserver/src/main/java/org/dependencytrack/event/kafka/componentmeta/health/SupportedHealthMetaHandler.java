@@ -49,8 +49,8 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
     }
 
     private boolean lastFetchIsStale(HealthMetaComponent persistentHealthMeta) {
-        return persistentHealthMeta.getLastFetch() != null
-                && Date.from(Instant.now()).getTime() - persistentHealthMeta.getLastFetch().getTime() > TIME_SPAN_HEALTH_META;
+        return persistentHealthMeta.getLastFetch() == null
+                || Date.from(Instant.now()).getTime() - persistentHealthMeta.getLastFetch().getTime() > TIME_SPAN_HEALTH_META;
     }
 
     @Override

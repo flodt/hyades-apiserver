@@ -104,6 +104,31 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
     }
 
     @Test
+    public void testHandleHealthWhenUnknownAgeMetadataExists() throws MalformedPackageURLException {
+        final String TEST_PURL = SupportedHealthMetaHandlerTest.TEST_PURL;
+        Handler<HealthMetaComponent> handler;
+        UUID uuid = UUID.randomUUID();
+        KafkaEventDispatcher kafkaEventDispatcher = new KafkaEventDispatcher();
+        PackageURL packageUrl = new PackageURL(TEST_PURL);
+        ComponentProjection componentProjection = new ComponentProjection(uuid, PurlUtil.silentPurlCoordinatesOnly(packageUrl).toString(), false, packageUrl);
+
+        // persist
+        var healthMeta = new HealthMetaComponent();
+        healthMeta.setPurlCoordinates(TEST_PURL);
+        healthMeta.setStars(42);
+        healthMeta.setScorecardScore(10.0f);
+        healthMeta.setStatus(FetchStatus.PROCESSED);
+        // -> set last fetch to null (don't have info)
+        healthMeta.setLastFetch(null);
+        qm.createHealthMetaComponent(healthMeta);
+
+        handler = HandlerFactory.createHealthMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_HEALTH);
+        HealthMetaComponent healthMetaComponent = handler.handle();
+
+        assertEventRecordsAndFetchStatus(uuid, healthMetaComponent);
+    }
+
+    @Test
     public void testHandleHealthWhenBrokenStaleFetchExists() throws MalformedPackageURLException {
         final String TEST_PURL = SupportedHealthMetaHandlerTest.TEST_PURL;
         Handler<HealthMetaComponent> handler;
