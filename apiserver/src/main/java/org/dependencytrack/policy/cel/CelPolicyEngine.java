@@ -379,13 +379,8 @@ public class CelPolicyEngine {
             final PolicyCondition condition = conditionScriptPair.getLeft();
             final CelPolicyScript script = conditionScriptPair.getRight();
 
-            // Since the availability of health metadata is not a given for all components, it's possible to run into
-            //   policies that use health data on components that don't have any - they can therefore not be evaluated
-            //   and need to be skipped.
-            boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
-            boolean butHasNoHealthMeta = HealthMeta.getDefaultInstance().equals(scriptArguments.get(CelPolicyVariable.HEALTH.variableName()));
-
-            if (needsHealthMeta && butHasNoHealthMeta) {
+            boolean shouldSkip = !hasCompleteData(scriptArguments, script);
+            if (shouldSkip) {
                 LOGGER.info("Skipping condition %s that uses missing health meta".formatted(condition.getUuid()));
                 continue;
             }
@@ -401,6 +396,29 @@ public class CelPolicyEngine {
         }
 
         return conditionsViolated;
+    }
+
+    private static boolean hasCompleteData(Map<String, Object> scriptArguments, CelPolicyScript script) {
+        // Since the availability of health metadata is not a given for all components, it's possible to run into
+        //   policies that use health data on components that don't have any - they can therefore not be evaluated
+        //   and need to be skipped.
+        //   More intricately, it's possible for some components to have e.g. GitHub metadata on stars/forks but no
+        //   OpenSSF Scorecard values, making it necessary to check which data is used in that specific policy in
+        //   particular.
+
+        // If we don't need health metadata at all, we can execute this policy
+        boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
+        if (!needsHealthMeta) return true;
+
+        // If we do have health metadata, check which fields we need and whether they are all present in the arguments
+        HealthMeta healthMetaArg = (HealthMeta) scriptArguments.get(CelPolicyVariable.HEALTH.variableName());
+
+        return script.getRequirements()
+                .get(TYPE_HEALTH)
+                .stream()
+                .map(s -> HealthMeta.getDescriptor().findFieldByName(s))
+                .filter(Objects::nonNull)
+                .allMatch(healthMetaArg::hasField);
     }
 
     private static List<PolicyViolation> evaluatePolicyOperators(final Collection<PolicyCondition> conditionsViolated) {
