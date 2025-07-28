@@ -45,6 +45,7 @@ import org.dependencytrack.util.ProtoUtil;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
+import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -166,6 +167,7 @@ public class RepositoryMetaResultProcessor implements Processor<String, Analysis
                 .ifPresent(persistentHealthMetaComponent::setScorecardChecksJson);
 
         persistentHealthMetaComponent.setStatus(FetchStatus.PROCESSED);
+        persistentHealthMetaComponent.setLastFetch(Date.from(Instant.now()));
 
         // Update
         if (isNew) {
