@@ -268,10 +268,20 @@ final class ComponentQueryManager extends QueryManager implements IQueryManager 
             }
 
             if (queryString.contains("ORDER BY")) {
-                if (orderDirection == OrderDirection.ASCENDING) {
-                    queryString += " ASC ";
-                } else if (orderDirection == OrderDirection.DESCENDING) {
-                    queryString += " DESC ";
+                // TODO: If desired, nulls last sorting behavior could be applied to everything uniformly, eliminating
+                //   the special case.
+                if (orderBy.equalsIgnoreCase("scorecardScore")) {
+                    if (orderDirection == OrderDirection.ASCENDING) {
+                        queryString += " ASC NULLS LAST ";
+                    } else if (orderDirection == OrderDirection.DESCENDING) {
+                        queryString += " DESC NULLS LAST ";
+                    }
+                } else {
+                    if (orderDirection == OrderDirection.ASCENDING) {
+                        queryString += " ASC ";
+                    } else if (orderDirection == OrderDirection.DESCENDING) {
+                        queryString += " DESC ";
+                    }
                 }
                 queryString += """
                         , "id"
