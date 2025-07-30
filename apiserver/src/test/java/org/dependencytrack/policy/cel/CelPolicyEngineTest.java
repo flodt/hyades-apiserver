@@ -2094,4 +2094,33 @@ public class CelPolicyEngineTest extends PersistenceCapableTest {
         new CelPolicyEngine().evaluateComponent(component.getUuid());
         assertThat(qm.getAllPolicyViolations(component)).isEmpty();
     }
+
+    @Test
+    public void testPoliciesShouldBeSkippedWhenIndividualScorecardChecksNotPresent() {
+        final var policy = qm.createPolicy("policy", Policy.Operator.ANY, Policy.ViolationState.FAIL);
+        qm.createPolicyCondition(policy, PolicyCondition.Subject.EXPRESSION, PolicyCondition.Operator.MATCHES, """
+                component.name == "acme-lib" && health.scoreCardChecks.maintained < 5.0 && health.avgIssueAgeDays > 100.0
+                """, PolicyViolation.Type.SECURITY);
+
+        final var project = new Project();
+        project.setName("acme-app");
+        qm.persist(project);
+
+        final var component = new Component();
+        component.setProject(project);
+        component.setName("acme-lib");
+        component.setPurl("pkg:maven/com.acme/acme-lib@1.0.0");
+        component.setPurlCoordinates("pkg:maven/com.acme/acme-lib@1.0.0");
+        qm.persist(component);
+
+        final var healthMeta = new HealthMetaComponent();
+        healthMeta.setPurlCoordinates(component.getPurlCoordinates().toString());
+        healthMeta.setStatus(FetchStatus.PROCESSED);
+        healthMeta.setAvgIssueAgeDays(150.0f);
+        healthMeta.setScorecardChecksJson("[]");
+        qm.persist(healthMeta);
+
+        new CelPolicyEngine().evaluateComponent(component.getUuid());
+        assertThat(qm.getAllPolicyViolations(component)).isEmpty();
+    }
 }

@@ -100,6 +100,7 @@ import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_HEAL
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_LICENSE_GROUP;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_PROJECT;
+import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_SCORECARD_CHECK;
 import static org.dependencytrack.policy.cel.definition.CelPolicyTypes.TYPE_VULNERABILITY;
 
 /**
@@ -380,7 +381,7 @@ public class CelPolicyEngine {
             final PolicyCondition condition = conditionScriptPair.getLeft();
             final CelPolicyScript script = conditionScriptPair.getRight();
 
-            boolean shouldSkip = !hasCompleteData(scriptArguments, script);
+            boolean shouldSkip = !hasCompleteHealthData(scriptArguments, script);
             if (shouldSkip) {
                 Component component = (Component) scriptArguments.get(CelPolicyVariable.COMPONENT.variableName());
                 LOGGER.debug("Skipping condition [%s] on component %s that uses missing data"
@@ -401,7 +402,7 @@ public class CelPolicyEngine {
         return conditionsViolated;
     }
 
-    private static boolean hasCompleteData(Map<String, Object> scriptArguments, CelPolicyScript script) {
+    private static boolean hasCompleteHealthData(Map<String, Object> scriptArguments, CelPolicyScript script) {
         // TODO: possibly rewrite this to take all arguments into account and not just health, if desired.
         // Since the availability of health metadata is not a given for all components, it's possible to run into
         //   policies that use health data on components that don't have any - they can therefore not be evaluated
@@ -411,18 +412,31 @@ public class CelPolicyEngine {
         //   particular.
 
         // If we don't need health metadata at all, we can execute this policy - the rest does not get checked right now
-        boolean needsHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
-        if (!needsHealthMeta) return true;
+        boolean needsBaseHealthMeta = script.getRequirements().containsKey(TYPE_HEALTH);
+        boolean needsScoreCardChecks = script.getRequirements().containsKey(TYPE_SCORECARD_CHECK);
+        if (!needsBaseHealthMeta && !needsScoreCardChecks) return true;
 
         // If we do have health metadata, check which fields we need and whether they are all present in the arguments
         HealthMeta healthMetaArg = (HealthMeta) scriptArguments.get(CelPolicyVariable.HEALTH.variableName());
-
-        return script.getRequirements()
+        boolean hasAllHealthMetaFields = script.getRequirements()
                 .get(TYPE_HEALTH)
                 .stream()
                 .map(s -> HealthMeta.getDescriptor().findFieldByName(s))
                 .filter(Objects::nonNull)
                 .allMatch(healthMetaArg::hasField);
+
+        if (!needsScoreCardChecks) return hasAllHealthMetaFields;
+
+        // We need ScoreCard checks, so we check them as well
+        ScoreCardCheck scoreCardChecksArg = healthMetaArg.getScoreCardChecks();
+        boolean hasAllScorecardChecksFields = script.getRequirements()
+                .get(TYPE_SCORECARD_CHECK)
+                .stream()
+                .map(s -> ScoreCardCheck.getDescriptor().findFieldByName(s))
+                .filter(Objects::nonNull)
+                .allMatch(scoreCardChecksArg::hasField);
+
+        return hasAllHealthMetaFields && hasAllScorecardChecksFields;
     }
 
     private static List<PolicyViolation> evaluatePolicyOperators(final Collection<PolicyCondition> conditionsViolated) {
