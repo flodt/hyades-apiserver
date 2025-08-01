@@ -27,8 +27,8 @@ public class RepoMetaConstants {
     // 1 hour
     public static final long TIME_SPAN_INTEGRITY_META = 60 * 60 * 1000L;
 
-    // 3 days
-    public static final long TIME_SPAN_HEALTH_META = 3 * 24 * 60 * 60 * 1000L;
+    // 10 days
+    public static final long TIME_SPAN_HEALTH_META = 10 * 24 * 60 * 60 * 1000L;
 
     public static final List<String> SUPPORTED_PACKAGE_URLS_FOR_INTEGRITY_CHECK = List.of(
             PackageURL.StandardTypes.MAVEN,
