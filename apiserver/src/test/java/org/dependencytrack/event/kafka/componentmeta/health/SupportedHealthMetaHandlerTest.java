@@ -27,6 +27,7 @@ import org.dependencytrack.event.kafka.KafkaTopics;
 import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
 import org.dependencytrack.event.kafka.componentmeta.Handler;
 import org.dependencytrack.event.kafka.componentmeta.HandlerFactory;
+import org.dependencytrack.event.kafka.componentmeta.RepoMetaConstants;
 import org.dependencytrack.model.FetchStatus;
 import org.dependencytrack.model.HealthMetaComponent;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
@@ -93,8 +94,9 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
         healthMeta.setStars(42);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStatus(FetchStatus.PROCESSED);
-        // -> set last fetch older than RepoMetaConstants.TIME_SPAN_HEALTH_META (which is 3 days)
-        healthMeta.setLastFetch(Date.from(Instant.now().minus(4, ChronoUnit.DAYS)));
+        // -> set last fetch older than RepoMetaConstants.TIME_SPAN_HEALTH_META
+        long days = 1 + RepoMetaConstants.TIME_SPAN_HEALTH_META / (24 * 60 * 60 * 1000);
+        healthMeta.setLastFetch(Date.from(Instant.now().minus(days, ChronoUnit.DAYS)));
         qm.createHealthMetaComponent(healthMeta);
 
         handler = HandlerFactory.createHealthMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_HEALTH);
@@ -143,8 +145,9 @@ public class SupportedHealthMetaHandlerTest extends PersistenceCapableTest {
         healthMeta.setStars(42);
         healthMeta.setScorecardScore(10.0f);
         healthMeta.setStatus(FetchStatus.IN_PROGRESS);
-        // -> set last fetch older than RepoMetaConstants.TIME_SPAN_HEALTH_META (which is 3 days)
-        healthMeta.setLastFetch(Date.from(Instant.now().minus(4, ChronoUnit.DAYS)));
+        // -> set last fetch older than RepoMetaConstants.TIME_SPAN_HEALTH_META
+        long days = 1 + RepoMetaConstants.TIME_SPAN_HEALTH_META / (24 * 60 * 60 * 1000);
+        healthMeta.setLastFetch(Date.from(Instant.now().minus(days, ChronoUnit.DAYS)));
         qm.createHealthMetaComponent(healthMeta);
 
         handler = HandlerFactory.createHealthMetaHandler(componentProjection, qm, kafkaEventDispatcher, FetchMeta.FETCH_META_HEALTH);

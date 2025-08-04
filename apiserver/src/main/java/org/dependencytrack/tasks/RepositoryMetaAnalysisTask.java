@@ -21,6 +21,7 @@ package org.dependencytrack.tasks;
 import alpine.common.logging.Logger;
 import alpine.event.framework.Event;
 import alpine.event.framework.Subscriber;
+import com.github.packageurl.MalformedPackageURLException;
 import net.javacrumbs.shedlock.core.LockConfiguration;
 import net.javacrumbs.shedlock.core.LockExtender;
 import net.javacrumbs.shedlock.core.LockingTaskExecutor;
@@ -28,10 +29,13 @@ import org.dependencytrack.event.ComponentRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.PortfolioRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.ProjectRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
+import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
+import org.dependencytrack.event.kafka.componentmeta.HandlerFactory;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.proto.repometaanalysis.v1.FetchMeta;
+import org.dependencytrack.util.PurlUtil;
 
 import javax.jdo.PersistenceManager;
 import javax.jdo.Query;
@@ -137,9 +141,24 @@ public class RepositoryMetaAnalysisTask implements Subscriber {
     }
 
     private void dispatchComponents(final List<ComponentProjection> components) {
-        for (final var component : components) {
-            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_LATEST_VERSION));
-            kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_HEALTH));
+        try (QueryManager qm = new QueryManager()) {
+            for (final var component : components) {
+                kafkaEventDispatcher.dispatchEvent(new ComponentRepositoryMetaAnalysisEvent(null, component.purlCoordinates(), component.internal(), FetchMeta.FETCH_META_LATEST_VERSION));
+
+                // We want to check first before we dispatch all health metas, as the operation can be expensive
+                HandlerFactory.createHealthMetaHandler(
+                        new org.dependencytrack.event.kafka.componentmeta.ComponentProjection(
+                                null,
+                                component.purlCoordinates(),
+                                component.internal(),
+                                PurlUtil.silentPurl(component.purlCoordinates())),
+                        qm,
+                        kafkaEventDispatcher,
+                        FetchMeta.FETCH_META_HEALTH
+                ).handle();
+            }
+        } catch (MalformedPackageURLException e) {
+            LOGGER.error("Malformed package URL", e);
         }
     }
 

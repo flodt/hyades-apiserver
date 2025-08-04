@@ -68,8 +68,7 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
         boolean needsUpdate = false;
 
         // Case 2: Data exists but is stale (older than TIME_SPAN)
-        boolean hasData = persistentHealthMeta.getStatus() == FetchStatus.PROCESSED
-                || persistentHealthMeta.getStatus() == FetchStatus.NOT_AVAILABLE;
+        boolean hasData = persistentHealthMeta.getStatus() == FetchStatus.PROCESSED;
         boolean existingDataIsStale = lastFetchIsStale(persistentHealthMeta);
         if (hasData && existingDataIsStale) {
             needsUpdate = true;
@@ -77,9 +76,10 @@ public class SupportedHealthMetaHandler extends AbstractMetaHandler<HealthMetaCo
 
         // Case 3: Status is not present or fetch is stalled (running but stale)
         boolean noStatus = persistentHealthMeta.getStatus() == null;
+        boolean notStarted = persistentHealthMeta.getStatus() == FetchStatus.NOT_AVAILABLE;
         boolean hasStalled = persistentHealthMeta.getStatus() == FetchStatus.IN_PROGRESS
                 && lastFetchIsStale(persistentHealthMeta);
-        if (noStatus || hasStalled) {
+        if (noStatus || notStarted || hasStalled) {
             needsUpdate = true;
         }
 
