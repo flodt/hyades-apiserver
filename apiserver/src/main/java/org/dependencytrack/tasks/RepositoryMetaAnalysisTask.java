@@ -29,7 +29,6 @@ import org.dependencytrack.event.ComponentRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.PortfolioRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.ProjectRepositoryMetaAnalysisEvent;
 import org.dependencytrack.event.kafka.KafkaEventDispatcher;
-import org.dependencytrack.event.kafka.componentmeta.ComponentProjection;
 import org.dependencytrack.event.kafka.componentmeta.HandlerFactory;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
